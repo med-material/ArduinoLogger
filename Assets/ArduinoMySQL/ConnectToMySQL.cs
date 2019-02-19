@@ -58,9 +58,14 @@ public class ConnectToMySQL : MonoBehaviour {
 		logsToUpload = new List<Dictionary<string, List<string>>>();
 
 		directory = Application.persistentDataPath + "/Data/";
+		string authDirectory = Application.persistentDataPath + "/Auth/";
 
 		if(!Directory.Exists(directory)) {
 			Directory.CreateDirectory(directory);
+		}
+
+		if(!Directory.Exists(authDirectory)) {
+			Directory.CreateDirectory(authDirectory);
 		}
 
 		if (builtInCredentials == null)  {
@@ -353,6 +358,8 @@ public class ConnectToMySQL : MonoBehaviour {
 
 	private void SaveCredentialsToDisk() {
 		string authDirectory = Application.persistentDataPath + "/Auth/";
+
+
 
 		if (File.Exists (authDirectory + "mysql_auth.txt")) {
 			File.Delete (authDirectory + "mysql_auth.txt");
