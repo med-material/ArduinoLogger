@@ -414,7 +414,7 @@ public class ConnectToMySQL : MonoBehaviour {
 			passwordField = inputFields[5];
 			dbURLField = inputFields[6];
 
-			var connectButton = GameObject.Find("MySQLConnectButton");
+			connectButton = GameObject.Find("MySQLConnectButton");
 			Button button = connectButton.GetComponent<Button>();
 			button.onClick.AddListener(() => Toggle_AuthConnect());
 		}
