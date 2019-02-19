@@ -96,7 +96,7 @@ public class ApplicationManager : MonoBehaviour
             return;
         }
 
-        sanitizedSerialPort = new string((from c in serialPortInputField.text where char.IsLetterOrDigit(c) || c == '/' select c).ToArray());
+        sanitizedSerialPort = new string((from c in serialPortInputField.text where char.IsLetterOrDigit(c) || char.IsPunctuation(c) select c).ToArray());
         UnityEngine.Debug.Log(sanitizedSerialPort);
         arduinoDataReceiver.SetSerialPort(sanitizedSerialPort);
         connectingToArduino = true;
