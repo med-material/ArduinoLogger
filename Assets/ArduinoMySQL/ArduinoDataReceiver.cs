@@ -80,6 +80,10 @@ public class ArduinoDataReceiver : MonoBehaviour
 		portName = newSerialPort;
 		serialport = new SerialPort (portName, baudRate);
 	}
+
+	public void SetEmail(string newEmail) {
+		aauEmail = newEmail;
+	}
 	
 	#region Receive and parse data functions
     // Coroutine handling the incomming data

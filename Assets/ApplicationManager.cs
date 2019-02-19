@@ -99,6 +99,7 @@ public class ApplicationManager : MonoBehaviour
         sanitizedSerialPort = new string((from c in serialPortInputField.text where char.IsLetterOrDigit(c) || char.IsPunctuation(c) select c).ToArray());
         UnityEngine.Debug.Log(sanitizedSerialPort);
         arduinoDataReceiver.SetSerialPort(sanitizedSerialPort);
+        arduinoDataReceiver.SetEmail(emailInputField.text);
         connectingToArduino = true;
         bool connected = arduinoDataReceiver.OpenConnection();
         if (connected) {
