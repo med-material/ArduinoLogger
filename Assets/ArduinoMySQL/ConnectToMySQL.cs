@@ -14,7 +14,6 @@ public class ConnectToMySQL : MonoBehaviour {
 
 	private static bool isConnected = false;
 	private int retries = 0;
-	//private Dictionary<string, string> wwwHeader = new Dictionary<string, string> ();
 	private string secHash;
     private string dataHash;
 	private string colsHash;
@@ -91,7 +90,6 @@ public class ConnectToMySQL : MonoBehaviour {
 
 		if (credentials["dbURL"] != "") {
 			UnityWebRequest www = UnityWebRequest.Post(credentials["dbURL"], form);
-			//WWW www = new WWW (url, form);
 
 			yield return www.SendWebRequest();
 
@@ -169,9 +167,8 @@ public class ConnectToMySQL : MonoBehaviour {
 		}
 	}
 	private string ParseDataToString(Dictionary<string, List<string>> logCollection) {
-		// Create a string with the columns
-		string dataString = "";
 		// Create a string with the data
+		string dataString = "";
 		for(int i = 0; i < logCollection["Email"].Count; i++) {
 			List<string> row = new List<string>();
 			foreach(string key in logCollection.Keys) {
@@ -188,7 +185,7 @@ public class ConnectToMySQL : MonoBehaviour {
 	private WWWForm PrepareForm(string dbCols, string dataString) {
 		WWWForm form = new WWWForm ();
 
-		// Add credentils to form
+		// Add credentials to form
 		form.AddField ("dbnamePost", credentials["dbName"]);
 		form.AddField ("tablePost", credentials["tableName"]);
 		form.AddField ("usernamePost", credentials["username"]);

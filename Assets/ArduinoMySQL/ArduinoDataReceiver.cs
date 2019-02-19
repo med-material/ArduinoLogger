@@ -24,16 +24,9 @@ public class ArduinoDataReceiver : MonoBehaviour
 	[SerializeField]
 	private ConnectToMySQL mySQL;
 
-	// COMPort and baut-rate to open
-    // CHANGE THIS (NAME AND BAUT-RATE) TO YOUR NEED, AND REMEMBER TO CHANGE IN ARDUINO CODE AS WELL!
-	
-
-
 	private static SerialPort serialport;
 	// According to : http://forum.arduino.cc/index.php?topic=56728.0;wap2
 
-	
-    // Received data (as a list of strings)
 	[Header("-- Settings --")]
 	public int baudRate = 9600;
 	public string portName;
@@ -41,8 +34,6 @@ public class ArduinoDataReceiver : MonoBehaviour
 
 	bool isData = false;
 	private int columnLength = 4;
-
-//    public List<string> receivedData = new List<string>();
 	#endregion
 	
 	#region Default Unity functions
@@ -197,8 +188,6 @@ public class ArduinoDataReceiver : MonoBehaviour
 
 			// Upload the data recieved after test is done
 			if (splitStr != null && splitStr [0].Contains ("LOG END")) {
-				// Create a WWWForm for all the data collected
-				// Call the ConnectToMySQL class
 
 				if(splitStr[0].Contains("REACTION TIME")) {
 					mySQL.SetDatabaseTable("reaction_time");

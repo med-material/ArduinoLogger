@@ -22,7 +22,6 @@ public class ApplicationManager : MonoBehaviour
 
     [SerializeField]
     ArduinoDataReceiver arduinoDataReceiver;
-    //LoggingManager loggingManager;
 
     [SerializeField]
     private InputField emailInputField;
@@ -61,12 +60,10 @@ public class ApplicationManager : MonoBehaviour
             if (next!= null) {
                             
                 InputField inputfield = next.GetComponent<InputField>();
-                if (inputfield !=null) inputfield.OnPointerClick(new PointerEventData(eventSystem));  //if it's an input field, also set the text caret
+                if (inputfield !=null) inputfield.OnPointerClick(new PointerEventData(eventSystem));
                             
                 eventSystem.SetSelectedGameObject(next.gameObject, new BaseEventData(eventSystem));
-            }
-            //else Debug.Log("next nagivation element not found");
-        
+            }        
         }
 
         // Catching exceptions from Serialport.open() freezes Unity,
