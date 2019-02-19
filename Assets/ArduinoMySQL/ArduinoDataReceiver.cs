@@ -152,7 +152,7 @@ public class ArduinoDataReceiver : MonoBehaviour
 				} else if (splitStr[0].Contains("REACTION TIME")) {
 					arduinoOutputType.text = "REACTION TIME";
 					arduinoOutputType.color = defaultColor;
-					columnLength = 5;
+					columnLength = 4;
 					mode = "ReactionTime";
 					logToDisk.SetFilePath("rtii_reactiontimetest_output.csv", "reaction_time");
 
