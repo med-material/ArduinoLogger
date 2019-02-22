@@ -6,6 +6,7 @@ using System;
 using UnityEngine.Networking;
 using System.Text;
 using UnityEngine.UI;
+using System.Text.RegularExpressions;
 
 public class ConnectToMySQL : MonoBehaviour {
 	public static string response = "";
@@ -25,6 +26,7 @@ public class ConnectToMySQL : MonoBehaviour {
 	private string sep = ",";
 	private List<string> dataDumps;
 	private List<string> colDumps;
+	private List<string> tableNameDumps;
 	
 	[SerializeField]
 	private TextAsset builtInCredentials;
@@ -54,6 +56,7 @@ public class ConnectToMySQL : MonoBehaviour {
 		defaultColor = statusMessage.color;
 		dataDumps = new List<string>();
 		colDumps = new List<string>();
+		tableNameDumps = new List<string>();
 		credentials = new Dictionary<string, string>();
 		logsToUpload = new List<Dictionary<string, List<string>>>();
 
@@ -110,7 +113,9 @@ public class ConnectToMySQL : MonoBehaviour {
 				} else {
 					statusMessage.text = "DB Error: Could not reach the database.".ToUpper();
 					statusMessage.color = errorColor;
-					connectButton.SetActive(true);
+					if (connectButton != null) {
+						connectButton.SetActive(true);
+					}
 				}
 			} else {
 				print ("Connected to Server");
@@ -165,6 +170,7 @@ public class ConnectToMySQL : MonoBehaviour {
 				// dump the data in case submission fails
 				dataDumps.Add(dataString);
 				colDumps.Add(dbCols);
+				tableNameDumps.Add(credentials["tableName"]);
 
 				StartCoroutine (SubmitLogs (form));
 			}
@@ -187,12 +193,18 @@ public class ConnectToMySQL : MonoBehaviour {
 		return dataString;
 	}
 
-	private WWWForm PrepareForm(string dbCols, string dataString) {
+	private WWWForm PrepareForm(string dbCols, string dataString, string dumpedTableName = "") {
 		WWWForm form = new WWWForm ();
 
 		// Add credentials to form
 		form.AddField ("dbnamePost", credentials["dbName"]);
-		form.AddField ("tablePost", credentials["tableName"]);
+
+		if (string.IsNullOrEmpty(dumpedTableName)) {
+			form.AddField ("tablePost", credentials["tableName"]);
+		} else {
+			form.AddField ("tablePost", dumpedTableName);
+		}
+		
 		form.AddField ("usernamePost", credentials["username"]);
 		form.AddField ("passwordPost", credentials["password"]);
 		form.AddField ("secHashPost",Md5Sum (credentials["dbSecKey"]));
@@ -240,12 +252,13 @@ public class ConnectToMySQL : MonoBehaviour {
 			// Clear datadump structures in case we are submitting dumped data
 			dataDumps.Clear();
 			colDumps.Clear();
+			tableNameDumps.Clear();
 		}
 
 	}
 
 	private void DumpLogsToUpload() {
-		if (dataDumps.Count > 0 && colDumps.Count > 0) {
+		if (dataDumps.Count > 0 && colDumps.Count > 0 && tableNameDumps.Count > 0) {
 			for (int i = 0; i < dataDumps.Count; i++) {
 				var fileDumps = Directory.GetFiles(directory, "logdump*");
 				using (StreamWriter writer = File.AppendText (directory + "logdump" + fileDumps.Length)) {
@@ -261,9 +274,20 @@ public class ConnectToMySQL : MonoBehaviour {
 				using (StreamWriter writer = File.AppendText (directory + "coldump" + fileDumps.Length)) {
 					writer.WriteLine (colDumps[i]);
 				}
+
+				if (File.Exists (directory + "tableName" + fileDumps.Length)) {
+					Debug.LogWarning("Overwriting coldump..");
+					File.Delete (directory + "coldump" + fileDumps.Length);
+				}
+
+				using (StreamWriter writer = File.AppendText (directory + "tableName" + fileDumps.Length)) {
+					writer.WriteLine (tableNameDumps[i]);
+				}
+
 			}
 			dataDumps.Clear();
 			colDumps.Clear();
+			tableNameDumps.Clear();
 			Debug.Log ("Dumping logdump to disk at: " + directory);
 		}	
 	}
@@ -278,9 +302,11 @@ public class ConnectToMySQL : MonoBehaviour {
 
 		for (int i = 0; i < fileDumps.Length; i++) {
 			// Remove logdump if we don't have a corresponding coldump file.
+			// TODO: Make a proper removal of files (tableName, logdump, coldump).
 			if (!File.Exists (directory + "coldump" + i)) {
 				Debug.LogWarning("logdump " + i + " was malformed, deleting logdump..");
 				File.Delete (directory + "logdump" + i);
+				File.Delete (directory + "tableName" + i);
 				continue;
 			}
 
@@ -304,7 +330,17 @@ public class ConnectToMySQL : MonoBehaviour {
 				}
 			}
 
+			string dumpedTableName = "";
+
+			using (StreamReader reader = new StreamReader(directory + "tableName" + i)) {
+				while((line = reader.ReadLine()) != null)  
+				{  
+					dumpedTableName += line;
+				}
+			}
+
 			File.Delete (directory + "logdump" + i);
+			File.Delete (directory + "tableName" + i);
 			File.Delete (directory + "coldump" + i);
 
 			Debug.Log ("Dumped Logs Detected.");
@@ -312,8 +348,9 @@ public class ConnectToMySQL : MonoBehaviour {
 			// dump the data in case submission fails
 			dataDumps.Add(dataString);
 			colDumps.Add(dbCols);
+			tableNameDumps.Add(dumpedTableName);
 
-			WWWForm form = PrepareForm(dbCols, dataString);
+			WWWForm form = PrepareForm(dbCols, dataString, dumpedTableName);
 			StartCoroutine (SubmitLogs (form));
 		}
 	}
@@ -380,7 +417,12 @@ public class ConnectToMySQL : MonoBehaviour {
 		foreach (var line in lines) {
 			if (!string.IsNullOrEmpty(line)) {
 				cred = line.Split('=');
-				credentials[cred[0]] = cred[1];
+
+				// Trim the loaded credentials for any non-ASCII characters.
+				// Fixes an odd problem in Windows which produced an invalid Md5hash.
+				string pattern = "[^ -~]+";
+		    	Regex reg_exp = new Regex(pattern);
+				credentials[reg_exp.Replace(cred[0], "")] = reg_exp.Replace(cred[1], "");;
 			}
 		}
 	}
