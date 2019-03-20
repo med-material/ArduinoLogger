@@ -49,7 +49,7 @@ public class ConnectToArduino : MonoBehaviour
     private EventSystem eventSystem;
 	private static SerialPort serialport;
 
-    void Start()
+    void Awake()
     {
         eventSystem = EventSystem.current;
         string[] ports = SerialPort.GetPortNames();
@@ -61,7 +61,7 @@ public class ConnectToArduino : MonoBehaviour
             arduinoDropdown.gameObject.SetActive(false);
             serialPortInputField.gameObject.SetActive(true);
         }
-
+        DontDestroyOnLoad (transform.gameObject);
     }
 
     

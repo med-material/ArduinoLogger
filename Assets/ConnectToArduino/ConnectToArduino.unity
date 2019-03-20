@@ -249,7 +249,7 @@ MonoBehaviour:
     m_TypeName: UnityEngine.UI.MaskableGraphic+CullStateChangedEvent, UnityEngine.UI,
       Version=1.0.0.0, Culture=neutral, PublicKeyToken=null
   m_FontData:
-    m_Font: {fileID: 12800000, guid: 1f6221ea465e36873817a5010e56be48, type: 3}
+    m_Font: {fileID: 10102, guid: 0000000000000000e000000000000000, type: 0}
     m_FontSize: 14
     m_FontStyle: 0
     m_BestFit: 0
@@ -413,6 +413,61 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 92010558}
   m_CullTransparentMesh: 0
+--- !u!1 &107130591
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 107130593}
+  - component: {fileID: 107130592}
+  m_Layer: 0
+  m_Name: ConnectToArduino
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &107130592
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 107130591}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 40b3594223759f043bb4fad21a2369b0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  connectedColor: {r: 0.28235295, g: 0.50980395, b: 0.25490198, a: 1}
+  errorColor: {r: 0.74509805, g: 0.11372549, b: 0.11372549, a: 1}
+  inputfieldErrorColor: {r: 1, g: 0.8039216, b: 0.8039216, a: 1}
+  emailInputField: {fileID: 2076936960}
+  serialPortInputField: {fileID: 403847157}
+  baudRateInputField: {fileID: 953325984}
+  arduinoDropdown: {fileID: 747546527}
+  connectStatus: {fileID: 236334987}
+  redirectScene: Data Logging
+  sanitizedSerialPort: 
+  sanitizedBaudRate: -1
+  email: 
+--- !u!4 &107130593
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 107130591}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 516.68445, y: 285.2677, z: 0.08346978}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_RootOrder: 3
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &131127374
 GameObject:
   m_ObjectHideFlags: 0
@@ -673,7 +728,7 @@ MonoBehaviour:
     m_TypeName: UnityEngine.UI.MaskableGraphic+CullStateChangedEvent, UnityEngine.UI,
       Version=1.0.0.0, Culture=neutral, PublicKeyToken=null
   m_FontData:
-    m_Font: {fileID: 12800000, guid: 1f6221ea465e36873817a5010e56be48, type: 3}
+    m_Font: {fileID: 10102, guid: 0000000000000000e000000000000000, type: 0}
     m_FontSize: 14
     m_FontStyle: 0
     m_BestFit: 0
@@ -826,7 +881,7 @@ MonoBehaviour:
     m_TypeName: UnityEngine.UI.MaskableGraphic+CullStateChangedEvent, UnityEngine.UI,
       Version=1.0.0.0, Culture=neutral, PublicKeyToken=null
   m_FontData:
-    m_Font: {fileID: 12800000, guid: 1f6221ea465e36873817a5010e56be48, type: 3}
+    m_Font: {fileID: 10102, guid: 0000000000000000e000000000000000, type: 0}
     m_FontSize: 19
     m_FontStyle: 0
     m_BestFit: 1
@@ -942,7 +997,7 @@ MonoBehaviour:
   m_OnValueChanged:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 0}
+      - m_Target: {fileID: 107130592}
         m_MethodName: serialPortInputFieldChange
         m_Mode: 1
         m_Arguments:
@@ -1508,7 +1563,7 @@ MonoBehaviour:
     m_TypeName: UnityEngine.UI.MaskableGraphic+CullStateChangedEvent, UnityEngine.UI,
       Version=1.0.0.0, Culture=neutral, PublicKeyToken=null
   m_FontData:
-    m_Font: {fileID: 12800000, guid: 1f6221ea465e36873817a5010e56be48, type: 3}
+    m_Font: {fileID: 10102, guid: 0000000000000000e000000000000000, type: 0}
     m_FontSize: 12
     m_FontStyle: 0
     m_BestFit: 1
@@ -1632,7 +1687,7 @@ MonoBehaviour:
     m_TypeName: UnityEngine.UI.MaskableGraphic+CullStateChangedEvent, UnityEngine.UI,
       Version=1.0.0.0, Culture=neutral, PublicKeyToken=null
   m_FontData:
-    m_Font: {fileID: 12800000, guid: 1f6221ea465e36873817a5010e56be48, type: 3}
+    m_Font: {fileID: 10102, guid: 0000000000000000e000000000000000, type: 0}
     m_FontSize: 14
     m_FontStyle: 0
     m_BestFit: 0
@@ -1849,7 +1904,7 @@ MonoBehaviour:
   m_OnValueChanged:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1922503807}
+      - m_Target: {fileID: 107130592}
         m_MethodName: dropdown_Changed
         m_Mode: 1
         m_Arguments:
@@ -2121,7 +2176,7 @@ MonoBehaviour:
     m_TypeName: UnityEngine.UI.MaskableGraphic+CullStateChangedEvent, UnityEngine.UI,
       Version=1.0.0.0, Culture=neutral, PublicKeyToken=null
   m_FontData:
-    m_Font: {fileID: 12800000, guid: 1f6221ea465e36873817a5010e56be48, type: 3}
+    m_Font: {fileID: 10102, guid: 0000000000000000e000000000000000, type: 0}
     m_FontSize: 14
     m_FontStyle: 0
     m_BestFit: 0
@@ -2827,7 +2882,7 @@ MonoBehaviour:
     m_TypeName: UnityEngine.UI.MaskableGraphic+CullStateChangedEvent, UnityEngine.UI,
       Version=1.0.0.0, Culture=neutral, PublicKeyToken=null
   m_FontData:
-    m_Font: {fileID: 12800000, guid: 1f6221ea465e36873817a5010e56be48, type: 3}
+    m_Font: {fileID: 10102, guid: 0000000000000000e000000000000000, type: 0}
     m_FontSize: 14
     m_FontStyle: 0
     m_BestFit: 0
@@ -2906,7 +2961,7 @@ MonoBehaviour:
     m_TypeName: UnityEngine.UI.MaskableGraphic+CullStateChangedEvent, UnityEngine.UI,
       Version=1.0.0.0, Culture=neutral, PublicKeyToken=null
   m_FontData:
-    m_Font: {fileID: 12800000, guid: 1f6221ea465e36873817a5010e56be48, type: 3}
+    m_Font: {fileID: 10102, guid: 0000000000000000e000000000000000, type: 0}
     m_FontSize: 14
     m_FontStyle: 0
     m_BestFit: 0
@@ -3389,7 +3444,6 @@ GameObject:
   - component: {fileID: 1922503804}
   - component: {fileID: 1922503803}
   - component: {fileID: 1922503802}
-  - component: {fileID: 1922503807}
   m_Layer: 5
   m_Name: Canvas
   m_TagString: Untagged
@@ -3477,30 +3531,6 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0, y: 0}
---- !u!114 &1922503807
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1922503801}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 40b3594223759f043bb4fad21a2369b0, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  connectedColor: {r: 0.28235295, g: 0.50980395, b: 0.25490198, a: 1}
-  errorColor: {r: 0.74509805, g: 0.11372549, b: 0.11372549, a: 1}
-  inputfieldErrorColor: {r: 1, g: 0.8039216, b: 0.8039216, a: 1}
-  emailInputField: {fileID: 2076936960}
-  serialPortInputField: {fileID: 403847157}
-  baudRateInputField: {fileID: 953325984}
-  arduinoDropdown: {fileID: 747546527}
-  connectStatus: {fileID: 236334987}
-  redirectScene: Data Logging
-  sanitizedSerialPort: 
-  sanitizedBaudRate: -1
-  email: 
 --- !u!1 &1996349698
 GameObject:
   m_ObjectHideFlags: 0
@@ -3602,7 +3632,7 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 1
         m_CallState: 2
-      - m_Target: {fileID: 1922503807}
+      - m_Target: {fileID: 107130592}
         m_MethodName: ConnectPressed
         m_Mode: 1
         m_Arguments:
@@ -3747,7 +3777,7 @@ MonoBehaviour:
   m_OnValueChanged:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 0}
+      - m_Target: {fileID: 107130592}
         m_MethodName: emailInputFieldChange
         m_Mode: 1
         m_Arguments:
@@ -3884,7 +3914,7 @@ MonoBehaviour:
     m_TypeName: UnityEngine.UI.MaskableGraphic+CullStateChangedEvent, UnityEngine.UI,
       Version=1.0.0.0, Culture=neutral, PublicKeyToken=null
   m_FontData:
-    m_Font: {fileID: 12800000, guid: 1f6221ea465e36873817a5010e56be48, type: 3}
+    m_Font: {fileID: 10102, guid: 0000000000000000e000000000000000, type: 0}
     m_FontSize: 14
     m_FontStyle: 0
     m_BestFit: 0
