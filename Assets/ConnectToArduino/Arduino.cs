@@ -64,9 +64,6 @@ public class Arduino : MonoBehaviour {
     [Header("Arduino Output")]
     public bool ParseIncomingData = true;   
     public string NewestIncomingData = "";
-
-	[SerializeField]
-    private Text arduinoOutputField;
     private int numberOfColumns = 1;
     private string separator = "\t";
     private string outputLabel;
@@ -87,6 +84,10 @@ public class Arduino : MonoBehaviour {
     [Serializable]
     public class OnLoggingStarted : UnityEvent<string> { }
     public OnLoggingStarted onLoggingStarted;
+
+    [Serializable]
+    public class OnLoggingInterrupted : UnityEvent<string> { }
+    public OnLoggingStarted onLoggingInterrupted;
 
     // Use this for initialization
     void Start () {
@@ -134,6 +135,7 @@ public class Arduino : MonoBehaviour {
                 // Otherwise error out and go to Standby Mode.
                 Debug.LogError("Received " + headers.Count + "columns, but Arduino reported " + numberOfColumns + "! Data Discarded..");
                 receiverState = ReceiverState.Standby;
+                onLoggingInterrupted.Invoke(outputLabel);
             }
         } else if (receiverState == ReceiverState.ReadingData) {
             // Check for "END" strings
@@ -159,6 +161,7 @@ public class Arduino : MonoBehaviour {
                     // Otherwise error out and go to Standby Mode.
                     Debug.LogError("Received " + bodyData.Length + "columns, but Arduino reported " + numberOfColumns + "! Data Discarded..");
                     receiverState = ReceiverState.Standby;
+                    onLoggingInterrupted.Invoke(outputLabel);
                 }
             }
         }

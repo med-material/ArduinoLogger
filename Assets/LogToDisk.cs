@@ -16,40 +16,29 @@ public class LogToDisk : MonoBehaviour
 
     private string directory = "";
 
-    [SerializeField]
-    private GameObject CSVFileLogged;
-
     void Start()
     {
         SetFilePath();
     }
 
-    public void ResetLoggedState() {
-        CSVFileLogged.SetActive(false);
-    }
-
-    public void SetFilePath(string filename = "", string directoryName = "") {
+    public void SetFilePath(string identifier = "logs") {
 
 		if (Application.platform == RuntimePlatform.WindowsPlayer || Application.platform == RuntimePlatform.WindowsEditor) {
-			directory = "C:\\rtii\\" + directoryName + "\\";
+			directory = "C:\\rtii\\" + identifier + "\\";
 			print ("Windows");
 		}
 		else if(Application.platform == RuntimePlatform.LinuxPlayer || Application.platform == RuntimePlatform.LinuxEditor) {
-			directory = System.Environment.GetFolderPath(System.Environment.SpecialFolder.Desktop) + "/rtii/" + directoryName + "/";
+			directory = System.Environment.GetFolderPath(System.Environment.SpecialFolder.Desktop) + "/rtii/" + identifier + "/";
 			print("Linux");
 		} else if (Application.platform == RuntimePlatform.OSXEditor || Application.platform == RuntimePlatform.OSXPlayer) {
-			directory = System.Environment.GetFolderPath(System.Environment.SpecialFolder.Desktop) + "/rtii/" + directoryName + "/";
+			directory = System.Environment.GetFolderPath(System.Environment.SpecialFolder.Desktop) + "/rtii/" + identifier + "/";
 			print("Mac OSX");
 		} else {
-            directory = System.Environment.GetFolderPath(System.Environment.SpecialFolder.Desktop) + "/rtii/" + directoryName + "/";
+            directory = System.Environment.GetFolderPath(System.Environment.SpecialFolder.Desktop) + "/rtii/" + identifier + "/";
             print("Unknown");
         }
 
-        if (string.IsNullOrEmpty(filename)) {
-            filepath = directory + "rtii_output.csv";
-        } else {
-            filepath = directory + filename;
-        }
+		filepath = directory + identifier + "_output.csv";
         Debug.Log("Filepath: " + filepath);
         filepathText.text = filepath;
         
@@ -65,10 +54,11 @@ public class LogToDisk : MonoBehaviour
             Debug.LogError("Filepath was not set!");
         }
 
-		if (File.Exists(filepath)) {
-			Debug.LogWarning("Overwriting CSV file: " + filepath);
-			File.Delete (filepath);
-		}
+		// Overwriting The existing file is disabled for now.
+		//if (File.Exists(filepath)) {
+		//	Debug.LogWarning("Overwriting CSV file: " + filepath);
+		//	File.Delete (filepath);
+		//}
 
 		string dbCols = string.Join(",",logCollection.Keys);
 
@@ -93,7 +83,6 @@ public class LogToDisk : MonoBehaviour
 		}
 
 		Debug.Log("Data logged to: " + filepath);
-        CSVFileLogged.SetActive(true);
 	}
 
 }
