@@ -15,11 +15,11 @@ public class ArduinoOutput : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        Arduino.NewDataEvent += NewData;
+        Arduino.NewRawSerialEvent += NewData;
     }
 
     void NewData(Arduino arduino) {
-        arduinoOutputField.text += arduino.NewestIncomingData + '\n';
+        arduinoOutputField.text += arduino.inputBuffer;
         Canvas.ForceUpdateCanvases();
         scrollRect.verticalNormalizedPosition = 0;
     }

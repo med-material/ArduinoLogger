@@ -77,6 +77,9 @@ public class Arduino : MonoBehaviour {
     public delegate void NewDataEventHandler(Arduino arduino);
     public static event NewDataEventHandler NewDataEvent;
 
+    public delegate void NewRawSerialEventHandler(Arduino arduino);
+    public static event NewRawSerialEventHandler NewRawSerialEvent;
+
     [Serializable]
     public class OnLoggingFinished : UnityEvent<Dictionary<string, List<string>>> { }
     public OnLoggingFinished onLoggingFinished;
@@ -228,7 +231,7 @@ public class Arduino : MonoBehaviour {
 
     //Buffers used for serial input
     private byte[] readBuffer = new byte[4096];
-    private string inputBuffer = "";
+    public string inputBuffer = "";
     private IEnumerator ReadIncomingData()
     {
         System.Text.ASCIIEncoding encoder = new System.Text.ASCIIEncoding();
@@ -243,6 +246,9 @@ public class Arduino : MonoBehaviour {
                 //Add the new data to our own input buffer
                 inputBuffer += serialInput;
 
+                if (NewRawSerialEvent != null)   //Check that someone is actually subscribed to the event
+                    NewRawSerialEvent(this);     //Fire the event in case someone is subscribed
+
                 //Find a new line flag (indicates end of a data package)
                 int endFlagPosition = inputBuffer.IndexOf('\n');
                 //If we found a flag, process it further
@@ -252,6 +258,7 @@ public class Arduino : MonoBehaviour {
                     if (inputBuffer[0] == StartFlag)
                     {
                         //Hand the data to the function above
+                        Debug.Log(inputBuffer);
                         ProcessInputFromArduino(inputBuffer.Substring(1, endFlagPosition));
                         readTimeouts = 0;
                     }
