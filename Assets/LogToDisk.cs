@@ -73,7 +73,7 @@ public class LogToDisk : MonoBehaviour
 		//	File.Delete (filepath);
 		//}
 
-		string dbCols = string.Join(",",logCollection.Keys);
+		string dbCols = string.Join(",",logCollection.Keys).Replace("\n",string.Empty);
 
 		using (StreamWriter writer = File.AppendText (filepath)) {
 			writer.WriteLine (dbCols);
