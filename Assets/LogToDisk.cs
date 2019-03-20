@@ -3,14 +3,19 @@ using System.Collections.Generic;
 using UnityEngine;
 using System.IO;
 using UnityEngine.UI;
+using UnityEditor;
+using SFB;
 
 public class LogToDisk : MonoBehaviour
 {
 
     private string filepath = "";
+	private string customFilepath = "";
 
     [SerializeField]
     private Text filepathText;
+
+	[SerializeField]
 
 	private StreamWriter writer;
 
@@ -22,28 +27,36 @@ public class LogToDisk : MonoBehaviour
     }
 
     public void SetFilePath(string identifier = "logs") {
+		if (string.IsNullOrEmpty(customFilepath)) {
 
-		if (Application.platform == RuntimePlatform.WindowsPlayer || Application.platform == RuntimePlatform.WindowsEditor) {
-			directory = "C:\\rtii\\" + identifier + "\\";
-			print ("Windows");
+			if (Application.platform == RuntimePlatform.WindowsPlayer || Application.platform == RuntimePlatform.WindowsEditor) {
+				directory = "C:\\rtii\\" + identifier + "\\";
+				print ("Windows");
+			}
+			else if(Application.platform == RuntimePlatform.LinuxPlayer || Application.platform == RuntimePlatform.LinuxEditor) {
+				directory = System.Environment.GetFolderPath(System.Environment.SpecialFolder.Desktop) + "/rtii/" + identifier + "/";
+				print("Linux");
+			} else if (Application.platform == RuntimePlatform.OSXEditor || Application.platform == RuntimePlatform.OSXPlayer) {
+				directory = System.Environment.GetFolderPath(System.Environment.SpecialFolder.Desktop) + "/rtii/" + identifier + "/";
+				print("Mac OSX");
+			} else {
+				directory = System.Environment.GetFolderPath(System.Environment.SpecialFolder.Desktop) + "/rtii/" + identifier + "/";
+				print("Unknown");
+			}
+
+			filepath = directory + identifier + "_output.csv";
+			Debug.Log("Filepath: " + filepath);
+			filepathText.text = filepath;
 		}
-		else if(Application.platform == RuntimePlatform.LinuxPlayer || Application.platform == RuntimePlatform.LinuxEditor) {
-			directory = System.Environment.GetFolderPath(System.Environment.SpecialFolder.Desktop) + "/rtii/" + identifier + "/";
-			print("Linux");
-		} else if (Application.platform == RuntimePlatform.OSXEditor || Application.platform == RuntimePlatform.OSXPlayer) {
-			directory = System.Environment.GetFolderPath(System.Environment.SpecialFolder.Desktop) + "/rtii/" + identifier + "/";
-			print("Mac OSX");
-		} else {
-            directory = System.Environment.GetFolderPath(System.Environment.SpecialFolder.Desktop) + "/rtii/" + identifier + "/";
-            print("Unknown");
-        }
-
-		filepath = directory + identifier + "_output.csv";
-        Debug.Log("Filepath: " + filepath);
-        filepathText.text = filepath;
         
     }
 
+	public void ShowSaveDialog() {
+		customFilepath = StandaloneFileBrowser.SaveFilePanel("Choose CSV File Destination..", "", "log", "csv");
+		filepath = customFilepath;
+		Debug.Log("Filepath: " + filepath);
+		filepathText.text = filepath;
+    }
 	public void Log(Dictionary<string, List<string>> logCollection) {
 
 		if(!Directory.Exists(directory)){
