@@ -21,6 +21,22 @@ public class ArduinoDataReceiver : MonoBehaviour
 {
 	#region Variables
 
+    public enum ReceiverState {
+        Standby,
+		ReadingHeader,
+        ReadingData,
+		LoggingFinished
+    }
+
+    public enum TestType {
+        SyncTest,
+        ReactionTimeTest,
+		Unknown
+    }
+
+	private ReceiverState receiverState;
+	private TestType testType;
+
 	[SerializeField]
 	private ConnectToMySQL mySQL;
 
@@ -33,7 +49,9 @@ public class ArduinoDataReceiver : MonoBehaviour
 	public string aauEmail;
 
 	bool isData = false;
-	private int columnLength = 4;
+	private int columnLength = 1;
+	private string separator = "\t";
+	private string label;
 	#endregion
 	
 	#region Default Unity functions
@@ -64,6 +82,7 @@ public class ArduinoDataReceiver : MonoBehaviour
 	private bool isLogging = false;
 
 	private Dictionary<string, List<string>> logCollection;
+	private List<string> headers;
     private void Start()
     {
 		defaultColor = arduinoOutputType.color;
@@ -86,15 +105,158 @@ public class ArduinoDataReceiver : MonoBehaviour
 	}
 	
 	#region Receive and parse data functions
-    // Coroutine handling the incomming data
+
+	private void ParseDataArguments(string s) {
+		var start = s.IndexOf("(");
+		var end = s.LastIndexOf(")");
+		string[] dataArgs = s.Substring(start, end - start).Split(',');
+
+		foreach (var arg in dataArgs) {
+			string[] valPair = arg.Split('=');
+
+			var param = new string((from c in valPair[0] where char.IsLetterOrDigit(c) || char.IsPunctuation(c) select c).ToArray());
+			var val = new string((from c in valPair[1] where char.IsLetterOrDigit(c) || char.IsPunctuation(c) select c).ToArray());
+
+			if (param == "sep") {
+					if (val == "tab") {
+						separator = "\t";
+					} else if (val == "comma") {
+						separator = ",";
+					} else {
+						Debug.LogError("Could not parse separator argument: " + val + " - use LOG BEGIN (sep=comma) or (sep=tab).");
+					}
+			} else if (param == "col") {
+					var result = int.TryParse(val, out columnLength);
+					if (!result) {
+						Debug.LogError("Could not parse column length argument: " + val + " - use fx LOG BEGIN (col=5).");
+					}
+			} else if (param == "label") {
+					label = val;
+			}
+			} else {
+				Debug.LogWarning("Arduino reported an unknown parameter: " + param);
+			}
+		}
+	}
+
+	private void DetermineTestType(string s) {
+		if (s.Contains("SYNC TEST")) {
+			testType = TestType.SyncTest;
+
+			logToDisk.SetFilePath("rtii_synctest_output.csv", "sync_test");
+			mySQL.SetDatabaseTable("synch");
+			// Initialize the log dictionary
+			logCollection = new Dictionary<string, List<string>>();
+
+		} else if (s.Contains("REACTION TIME")) {
+			testType = TestType.ReactionTimeTest;
+			logToDisk.SetFilePath("rtii_reactiontimetest_output.csv", "reaction_time");
+			mySQL.SetDatabaseTable("reaction_time");
+			
+		} else {
+			Debug.LogError("Could not recognize Test Type!");
+			testType = TestType.Unknown;
+		}
+	}
+
+    // Coroutine handling the incomming data	
     public IEnumerator ReceiveDataRoutine()
     {
-		string[] splitStr = null;
+		//string[] splitStr = null;
 
 		yield return new WaitForSeconds (2f); // Delay for two seconds before test
 
         while (serialport.IsOpen)
         {
+			string s = String.Empty;
+			try {
+				// Read line from Arduino
+				s = serialport.ReadLine();
+				Debug.Log(s);
+			} catch(System.Exception) { 
+				// Arduino Disconnected? TODO.
+				// Or just no lines to read atm.
+			}
+
+			// If our string is empty, continue the while loop.
+			if (String.IsNullOrEmpty(s)) {
+				continue;
+			}
+
+			// Send line to ArduinoOutput (if output exists)
+			// TODO: Put ArduinoOutputField in a scroll rect.
+			if (arduinoOutputField) {
+				arduinoOutputField.text += (s + '\n');
+			}
+
+			// Read what is our current state
+			if (receiverState == ReceiverState.Standby) {
+				// Check for "BEGIN" string.
+				if (s.Contains ("LOG BEGIN")) {
+					// Parse Reported Column and Separator
+					ParseDataArguments(s);
+
+					// Determine Test Type
+					DetermineTestType(s);
+
+					// Initialize the log dictionary
+					logCollection = new Dictionary<string, List<string>>();
+
+					receiverState = ReceiverState.ReadingHeader;					
+				}
+			} else if (receiverState == ReceiverState.ReadingHeader) {
+				// Parse header
+				headers = new List<string>();				
+				headers = s.Split('\t').ToList();
+
+				// Check that header contains the expected number of columns. 
+				if (headers.Count == columnLength) {
+					foreach (var header in headers) {
+						logCollection.Add(header, new List<string>());
+					}
+					receiverState = ReceiverState.ReadingData;
+				} else {
+					// Otherwise error out and go to Standby Mode.
+					Debug.LogError("Received " + headers.Count + "columns, but Arduino reported " + columnLength + "! Data Discarded..");
+					receiverState = ReceiverState.Standby;
+				}
+			} else if (receiverState == ReceiverState.ReadingData) {
+				// Check for "END" strings
+				if (s.Contains ("LOG END")) {
+					receiverState = ReceiverState.LoggingFinished;
+					continue;
+				}
+				// Parse data
+				var bodyData = s.Split('\t');
+
+				// Check that bodyData contains the expected number of columns. 
+				if (bodyData.Length == columnLength) {
+					for (int i = 0; i < bodyData.Length; i++) {
+						string header = headers[i];
+						string sanitizedValue = new string((from c in bodyData[i] where char.IsLetterOrDigit(c) || char.IsPunctuation(c) select c).ToArray());
+						logCollection[header].Add(sanitizedValue);
+					}
+				} else {
+					// Otherwise error out and go to Standby Mode.
+					Debug.LogError("Received " + bodyData.Length + "columns, but Arduino reported " + columnLength + "! Data Discarded..");
+					receiverState = ReceiverState.Standby;
+				}
+
+			} else 	if (receiverState == ReceiverState.LoggingFinished) {
+				// Finalize Data Collection
+				mySQL.AddToUploadQueue(logCollection);
+				mySQL.UploadNow();				
+				logToDisk.Log(logCollection);
+
+				// Reset receiverState to Standby.
+				receiverState = ReceiverState.Standby;
+				logToDisk.ResetLoggedState();
+
+			}
+		}
+	}
+
+/*
             // Yield untill end of frame, to allow Unity to continue as normal
             yield return null;
 
@@ -216,7 +378,7 @@ public class ArduinoDataReceiver : MonoBehaviour
 
 		}
     }
-
+*/
 
 	#endregion
 	
