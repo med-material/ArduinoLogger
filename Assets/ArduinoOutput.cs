@@ -9,6 +9,9 @@ public class ArduinoOutput : MonoBehaviour
     [SerializeField]
     private Text arduinoOutputField;
 
+    [SerializeField]
+    private ScrollRect scrollRect;    
+
     // Start is called before the first frame update
     void Start()
     {
@@ -17,6 +20,8 @@ public class ArduinoOutput : MonoBehaviour
 
     void NewData(Arduino arduino) {
         arduinoOutputField.text += arduino.NewestIncomingData + '\n';
+        Canvas.ForceUpdateCanvases();
+        scrollRect.verticalNormalizedPosition = 0;
     }
 
     public void ClearOutput() {
