@@ -84,6 +84,10 @@ public class Arduino : MonoBehaviour {
     public class OnLoggingFinished : UnityEvent<Dictionary<string, List<string>>> { }
     public OnLoggingFinished onLoggingFinished;
 
+    [Serializable]
+    public class OnLoggingStarted : UnityEvent<string> { }
+    public OnLoggingStarted onLoggingStarted;
+
     // Use this for initialization
     void Start () {
         var connectToArduino = GameObject.Find("ConnectToArduino").GetComponent<ConnectToArduino>();
@@ -101,16 +105,13 @@ public class Arduino : MonoBehaviour {
             return;
         }
 
-        if (arduinoOutputField) {
-            arduinoOutputField.text += (serialInput + '\n');
-        }
-
         // Read what is our current state
         if (receiverState == ReceiverState.Standby) {
             // Check for "BEGIN" string.
             if (serialInput.Contains ("LOG BEGIN")) {
                 // Parse Reported Column and Separator
                 ParseDataArguments(serialInput);
+                onLoggingStarted.Invoke(outputLabel);
 
                 // Initialize the log dictionary
                 logCollection = new Dictionary<string, List<string>>();
