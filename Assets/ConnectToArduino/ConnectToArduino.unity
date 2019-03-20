@@ -590,7 +590,7 @@ MonoBehaviour:
   baudRateInputField: {fileID: 953325984}
   arduinoDropdown: {fileID: 747546527}
   connectStatus: {fileID: 236334987}
-  redirectScene: Data Logging
+  redirectScene: DataLogging
   sanitizedSerialPort: 
   sanitizedBaudRate: -1
   email: 
