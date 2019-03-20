@@ -5,7 +5,7 @@ The Arduino Logger logs Arduino serial output to *.csv files (buildable as a sta
 [Download here](https://github.com/med-material/ArduinoLogger/releases/) (Windows, Mac, OS X)
 
 ## How to use it
-The Arduino logger parses any Arduino Serial output, which adheres to the following format:
+The Arduino logger parses any Arduino Serial output beginning with `#` and ending with `\n` and which adheres to the following format:
 
 ```
 #BEGIN LOG (col=3,sep=comma,label=mytest)
