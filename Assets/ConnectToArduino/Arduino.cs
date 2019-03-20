@@ -258,7 +258,6 @@ public class Arduino : MonoBehaviour {
                     if (inputBuffer[0] == StartFlag)
                     {
                         //Hand the data to the function above
-                        Debug.Log(inputBuffer);
                         ProcessInputFromArduino(inputBuffer.Substring(1, endFlagPosition));
                         readTimeouts = 0;
                     }
