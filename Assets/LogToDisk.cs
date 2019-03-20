@@ -68,16 +68,15 @@ public class LogToDisk : MonoBehaviour
         }
 
 		// Overwriting The existing file is disabled for now.
-		//if (File.Exists(filepath)) {
+		if (!File.Exists(filepath)) {
 		//	Debug.LogWarning("Overwriting CSV file: " + filepath);
-		//	File.Delete (filepath);
-		//}
+			//File.Delete (filepath);
+			string dbCols = string.Join(",",logCollection.Keys).Replace("\n",string.Empty);
 
-		string dbCols = string.Join(",",logCollection.Keys).Replace("\n",string.Empty);
-
-		using (StreamWriter writer = File.AppendText (filepath)) {
-			writer.WriteLine (dbCols);
-		}
+			using (StreamWriter writer = File.AppendText (filepath)) {
+				writer.WriteLine (dbCols);
+			}
+		} 
 
 		List<string> dataString = new List<string>();
 		// Create a string with the data
@@ -91,7 +90,7 @@ public class LogToDisk : MonoBehaviour
 		
 		foreach (var log in dataString) {
 			using (StreamWriter writer = File.AppendText (filepath)) {
-				writer.WriteLine (log);
+				writer.WriteLine (log.Replace("\n",string.Empty));
 			}
 		}
 
