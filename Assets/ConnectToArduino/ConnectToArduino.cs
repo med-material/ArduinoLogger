@@ -97,6 +97,7 @@ public class ConnectToArduino : MonoBehaviour
 
     private void displayArduinoError() {
         connectStatus.text = "Could not connect to Arduino on port: " + sanitizedSerialPort;
+        connectStatus.text += '\n' + "(Is the Arduino Monitor open?)";
         connectStatus.color = errorColor;
         serialPortInputField.image.color = inputfieldErrorColor;
         connectingToArduino = false;
