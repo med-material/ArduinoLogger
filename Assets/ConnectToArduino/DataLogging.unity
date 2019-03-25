@@ -1800,7 +1800,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ab22e7b89d1224d5cb1ceb845cd6aead, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  builtInCredentials: {fileID: 4900000, guid: b1ad49b7e9f7a0e458a1699b08bac471, type: 3}
+  builtInCredentials: {fileID: 4900000, guid: 8ea2f2e47aca76b41add7658c0c13968, type: 3}
   statusMessage: {fileID: 295343692}
   errorColor: {r: 0.74509805, g: 0.11372549, b: 0.11372549, a: 1}
 --- !u!4 &870000800
@@ -1956,6 +1956,8 @@ MonoBehaviour:
   BaudRate: 115200
   ParseIncomingData: 1
   NewestIncomingData: 
+  separator: "\t"
+  headers: []
   onLoggingFinished:
     m_PersistentCalls:
       m_Calls:
@@ -1973,17 +1975,6 @@ MonoBehaviour:
       - m_Target: {fileID: 870000799}
         m_MethodName: UploadNow
         m_Mode: 1
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
-      - m_Target: {fileID: 261821323}
-        m_MethodName: Log
-        m_Mode: 0
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
           m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine

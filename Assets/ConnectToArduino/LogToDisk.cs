@@ -24,6 +24,8 @@ public class LogToDisk : MonoBehaviour
     void Start()
     {
         SetFilePath();
+		Arduino.NewDataEvent += ContinuousLog;
+		Arduino.NewHeaderEvent += LogHeader;
     }
 
     public void SetFilePath(string identifier = "logs") {
@@ -48,7 +50,10 @@ public class LogToDisk : MonoBehaviour
 			Debug.Log("Filepath: " + filepath);
 			filepathText.text = filepath;
 		}
-        
+
+		if(!Directory.Exists(directory)){
+			Directory.CreateDirectory(directory);
+		}    
     }
 
 	public void ShowSaveDialog() {
@@ -57,6 +62,19 @@ public class LogToDisk : MonoBehaviour
 		Debug.Log("Filepath: " + filepath);
 		filepathText.text = filepath;
     }
+
+	public void LogHeader(Arduino arduino) {
+			string headerline = string.Join(arduino.separator, arduino.headers).Replace("\n",string.Empty);
+			using (StreamWriter writer = File.AppendText (filepath)) {
+				writer.WriteLine (headerline);
+			}			
+	}
+	public void ContinuousLog(Arduino arduino) {
+			using (StreamWriter writer = File.AppendText (filepath)) {
+				writer.WriteLine (arduino.NewestIncomingData.Replace("\n",string.Empty));
+			}		
+	}
+
 	public void Log(Dictionary<string, List<string>> logCollection) {
 
 		if(!Directory.Exists(directory)){
