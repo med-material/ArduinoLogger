@@ -12,14 +12,27 @@ public class ArduinoOutput : MonoBehaviour
     [SerializeField]
     private ScrollRect scrollRect;    
 
+    private List<string> arduinoSerial;
+
+    private int outputFieldLimit = 70;
+    string newOutputContent = "";
     // Start is called before the first frame update
     void Start()
     {
+        arduinoSerial = new List<string>();
         Arduino.NewRawSerialEvent += NewData;
     }
 
     void NewData(Arduino arduino) {
-        arduinoOutputField.text += arduino.inputBuffer;
+        arduinoSerial.Add(arduino.inputBuffer);
+        newOutputContent = "";
+        if (arduinoSerial.Count <= outputFieldLimit) {
+            newOutputContent = string.Join("\n", arduinoSerial);
+        } else {
+            newOutputContent = string.Join("\n", arduinoSerial.GetRange(arduinoSerial.Count-outputFieldLimit, outputFieldLimit));
+        }
+        Debug.Log("serialamount: " + arduinoSerial.Count + "fieldlimit: " + outputFieldLimit);
+        arduinoOutputField.text = newOutputContent;
         Canvas.ForceUpdateCanvases();
         scrollRect.verticalNormalizedPosition = 0;
     }
