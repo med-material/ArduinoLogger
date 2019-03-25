@@ -65,11 +65,11 @@ public class Arduino : MonoBehaviour {
     public bool ParseIncomingData = true;   
     public string NewestIncomingData = "";
     private int numberOfColumns = 1;
-    private string separator = "\t";
+    public string separator = "\t";
     private string outputLabel;
     private string email;
     private Dictionary<string, List<string>> logCollection;
-    private List<string> headers;
+    public List<string> headers;
 
     /* 
     * Event Handler
@@ -80,6 +80,8 @@ public class Arduino : MonoBehaviour {
     public delegate void NewRawSerialEventHandler(Arduino arduino);
     public static event NewRawSerialEventHandler NewRawSerialEvent;
 
+    public delegate void NewHeaderEventHandler(Arduino arduino);
+    public static event NewHeaderEventHandler NewHeaderEvent;
     [Serializable]
     public class OnLoggingFinished : UnityEvent<Dictionary<string, List<string>>> { }
     public OnLoggingFinished onLoggingFinished;
@@ -126,7 +128,8 @@ public class Arduino : MonoBehaviour {
             // Parse header
             headers = new List<string>();				
             headers = serialInput.Split('\t').ToList();
-            
+            if (NewHeaderEvent != null)   //Check that someone is actually subscribed to the event
+                NewHeaderEvent(this);     //Fire the event in case someone is subscribed            
             logCollection.Add("Email", new List<string>());
             // Check that header contains the expected number of columns. 
             if (headers.Count == numberOfColumns) {
