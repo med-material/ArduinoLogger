@@ -4,8 +4,6 @@ using UnityEngine;
 using System.IO;
 using UnityEngine.UI;
 using UnityEditor;
-using SFB;
-
 public class LogToDisk : MonoBehaviour
 {
 
@@ -21,14 +19,20 @@ public class LogToDisk : MonoBehaviour
 
     private string directory = "";
 
+	[SerializeField]
+	private bool shouldLog = true;
+
     void Start()
     {
-        SetFilePath();
+        SetFilePathFromArduino();
 		Arduino.NewDataEvent += ContinuousLog;
 		Arduino.NewHeaderEvent += LogHeader;
     }
 
-    public void SetFilePath(string identifier = "logs") {
+	public void SetCustomFilePath(string path) {
+		filepath = path;
+	}
+    public void SetFilePathFromArduino(string identifier = "logs") {
 		if (string.IsNullOrEmpty(customFilepath)) {
 
 			if (Application.platform == RuntimePlatform.WindowsPlayer || Application.platform == RuntimePlatform.WindowsEditor) {
@@ -55,24 +59,32 @@ public class LogToDisk : MonoBehaviour
 			Directory.CreateDirectory(directory);
 		}    
     }
-
-	public void ShowSaveDialog() {
-		customFilepath = StandaloneFileBrowser.SaveFilePanel("Choose CSV File Destination..", "", "log", "csv");
-		filepath = customFilepath;
-		Debug.Log("Filepath: " + filepath);
-		filepathText.text = filepath;
-    }
-
-	public void LogHeader(Arduino arduino) {
-			string headerline = string.Join(arduino.separator, arduino.headers).Replace("\n",string.Empty);
+	public void LogHeader(List<string> headers) {
+		if (!File.Exists(filepath)) {
+			string headerline = string.Join("\t", headers.ToArray()).Replace("\n",string.Empty);
 			using (StreamWriter writer = File.AppendText (filepath)) {
 				writer.WriteLine (headerline);
 			}			
+		}
 	}
-	public void ContinuousLog(Arduino arduino) {
+
+	public void StartLogging() {
+		shouldLog = true;
+	}
+
+	public void StopLogging() {
+		shouldLog = false;
+	}
+	public void ContinuousLog(Dictionary<string, List<string>> data) {
+		if (shouldLog) {
 			using (StreamWriter writer = File.AppendText (filepath)) {
-				writer.WriteLine (arduino.NewestIncomingData.Replace("\n",string.Empty));
+				string line = "";
+				foreach (var header in data.Keys) {
+					line += data[header][data[header].Count-1] + "\t";
+				}
+				writer.WriteLine (line.Replace("\n",string.Empty));
 			}		
+		}
 	}
 
 	public void Log(Dictionary<string, List<string>> logCollection) {
@@ -89,7 +101,9 @@ public class LogToDisk : MonoBehaviour
 		if (!File.Exists(filepath)) {
 		//	Debug.LogWarning("Overwriting CSV file: " + filepath);
 			//File.Delete (filepath);
-			string dbCols = string.Join(",",logCollection.Keys).Replace("\n",string.Empty);
+			string[] keys = new string[logCollection.Keys.Count];
+			logCollection.Keys.CopyTo(keys,0);
+			string dbCols = string.Join(",", keys).Replace("\n",string.Empty);
 
 			using (StreamWriter writer = File.AppendText (filepath)) {
 				writer.WriteLine (dbCols);
@@ -103,7 +117,7 @@ public class LogToDisk : MonoBehaviour
 			foreach(string key in logCollection.Keys) {
 				row.Add(logCollection[key][i]);
 			}
-			dataString.Add(string.Join(",",row) + ";");
+			dataString.Add(string.Join(",",row.ToArray()) + ";");
 		}
 		
 		foreach (var log in dataString) {

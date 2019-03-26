@@ -9,6 +9,10 @@
  * Created by Martin Kibsgaard, Aalborg University
  * kibsgaard@creatae.aau.dk
  * martin.kibsgaard@gmail.com
+ * 
+ * Modified by Bastian Ilso
+ * biho@create.aau.dk
+ * contact@bastianilso.com
  */
 
 //To subscribe to the data from the Arduino you can write:
@@ -62,8 +66,8 @@ public class Arduino : MonoBehaviour {
     * Incoming data
     */
     [Header("Arduino Output")]
-    public bool ParseIncomingData = true;   
-    public string NewestIncomingData = "";
+    public bool ParseIncomingData = true;
+    private Dictionary<string, string> NewestIncomingData;
     private int numberOfColumns = 1;
     public string separator = "\t";
     private string outputLabel;
@@ -74,13 +78,13 @@ public class Arduino : MonoBehaviour {
     /* 
     * Event Handler
     */
-    public delegate void NewDataEventHandler(Arduino arduino);
+    public delegate void NewDataEventHandler(Dictionary<string, List<string>> readData);
     public static event NewDataEventHandler NewDataEvent;
 
     public delegate void NewRawSerialEventHandler(Arduino arduino);
     public static event NewRawSerialEventHandler NewRawSerialEvent;
 
-    public delegate void NewHeaderEventHandler(Arduino arduino);
+    public delegate void NewHeaderEventHandler(List<string> arduinoHeaders);
     public static event NewHeaderEventHandler NewHeaderEvent;
     [Serializable]
     public class OnLoggingFinished : UnityEvent<Dictionary<string, List<string>>> { }
@@ -105,8 +109,6 @@ public class Arduino : MonoBehaviour {
 
     //Process the data we get from our Arduino (this function might be called more often than Update(), depending on the chosen polling rate)
     private void ProcessInputFromArduino(string serialInput) {
-        NewestIncomingData = serialInput;
-
         if (!ParseIncomingData) {
             return;
         }
@@ -129,7 +131,7 @@ public class Arduino : MonoBehaviour {
             headers = new List<string>();				
             headers = serialInput.Split('\t').ToList();
             if (NewHeaderEvent != null)   //Check that someone is actually subscribed to the event
-                NewHeaderEvent(this);     //Fire the event in case someone is subscribed            
+                NewHeaderEvent(headers);     //Fire the event in case someone is subscribed            
             logCollection.Add("Email", new List<string>());
             // Check that header contains the expected number of columns. 
             if (headers.Count == numberOfColumns) {
@@ -151,10 +153,6 @@ public class Arduino : MonoBehaviour {
                 // Parse data
                 var bodyData = serialInput.Split('\t');
 
-                //When ever new data arrives, the scripts fires an event to any scripts that are subscribed, to let them know there is new data available (e.g. my Arduino Logger script).
-                if (NewDataEvent != null)   //Check that someone is actually subscribed to the event
-                    NewDataEvent(this);     //Fire the event in case someone is subscribed
-
                 // Check that bodyData contains the expected number of columns. 
                 if (bodyData.Length == numberOfColumns) {
                     logCollection["Email"].Add(email);
@@ -163,11 +161,15 @@ public class Arduino : MonoBehaviour {
                         string sanitizedValue = new string((from c in bodyData[i] where char.IsLetterOrDigit(c) || char.IsPunctuation(c) select c).ToArray());
                         logCollection[header].Add(sanitizedValue);
                     }
+                    //When ever new data arrives, the scripts fires an event to any scripts that are subscribed, to let them know there is new data available (e.g. my Arduino Logger script).
+                    if (NewDataEvent != null) {   //Check that someone is actually subscribed to the event
+                        NewDataEvent(logCollection);     //Fire the event in case someone is subscribed
+                    }
                 } else {
                     // Otherwise error out and go to Standby Mode.
                     Debug.LogError("Received " + bodyData.Length + "columns, but Arduino reported " + numberOfColumns + "! Data Discarded..");
-                    receiverState = ReceiverState.Standby;
-                    onLoggingInterrupted.Invoke(outputLabel);
+                    //receiverState = ReceiverState.Standby;
+                    //onLoggingInterrupted.Invoke(outputLabel);
                 }
             }
         }
@@ -234,7 +236,8 @@ public class Arduino : MonoBehaviour {
 
     //Buffers used for serial input
     private byte[] readBuffer = new byte[4096];
-    public string inputBuffer = "";
+    private string inputBuffer = "";
+    public string rawSerialEvent = "";
     private IEnumerator ReadIncomingData()
     {
         System.Text.ASCIIEncoding encoder = new System.Text.ASCIIEncoding();
@@ -248,6 +251,7 @@ public class Arduino : MonoBehaviour {
                 string serialInput = encoder.GetString(readBuffer, 0, bytesRead);
                 //Add the new data to our own input buffer
                 inputBuffer += serialInput;
+                rawSerialEvent = serialInput;
 
                 if (NewRawSerialEvent != null)   //Check that someone is actually subscribed to the event
                     NewRawSerialEvent(this);     //Fire the event in case someone is subscribed
@@ -346,6 +350,7 @@ public class Arduino : MonoBehaviour {
         }
 
         //Clear any data in the buffer (the C# methods made for this in the Serial class are not implemented in this version of Mono)
+        
         try
         {
             byte[] buffer = new byte[arduino.ReadBufferSize];
@@ -355,12 +360,13 @@ public class Arduino : MonoBehaviour {
         {
             // ignored
         }
+         
 
 
         arduino.ReadTimeout = 1; //We don't want Unity to hang in case there's no data yet. Better to timeout the reading and let Unity do other things while waiting for new data to arrive
 
         SerialUpdate = ReadIncomingData();
-        StartCoroutine(SerialUpdate);
+        StartCoroutine(SerialUpdate); 
     }
 
     void OnDisable()

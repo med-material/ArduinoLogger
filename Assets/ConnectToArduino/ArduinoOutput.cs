@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using System;
 
 public class ArduinoOutput : MonoBehaviour
 {
@@ -13,8 +14,7 @@ public class ArduinoOutput : MonoBehaviour
     private ScrollRect scrollRect;    
 
     private List<string> arduinoSerial;
-
-    private int outputFieldLimit = 70;
+    private int outputFieldLimit = 0;
     string newOutputContent = "";
     // Start is called before the first frame update
     void Start()
@@ -24,17 +24,8 @@ public class ArduinoOutput : MonoBehaviour
     }
 
     void NewData(Arduino arduino) {
-        arduinoSerial.Add(arduino.inputBuffer);
-        newOutputContent = "";
-        if (arduinoSerial.Count <= outputFieldLimit) {
-            newOutputContent = string.Join("\n", arduinoSerial);
-        } else {
-            newOutputContent = string.Join("\n", arduinoSerial.GetRange(arduinoSerial.Count-outputFieldLimit, outputFieldLimit));
-        }
-        Debug.Log("serialamount: " + arduinoSerial.Count + "fieldlimit: " + outputFieldLimit);
-        arduinoOutputField.text = newOutputContent;
-        Canvas.ForceUpdateCanvases();
-        scrollRect.verticalNormalizedPosition = 0;
+
+        arduinoOutputField.text = (arduinoOutputField.text + "\n" + arduino.rawSerialEvent).Substring(Math.Max((arduinoOutputField.text + "\n" + arduino.rawSerialEvent).Length-1000, 0),Math.Min((arduinoOutputField.text + "\n" + arduino.rawSerialEvent).Length, 1000));
     }
 
     public void ClearOutput() {
@@ -44,6 +35,7 @@ public class ArduinoOutput : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        
-    }
+        Canvas.ForceUpdateCanvases();
+        scrollRect.verticalNormalizedPosition = 0;    
+    } 
 }
