@@ -22,6 +22,11 @@ public class LogToDisk : MonoBehaviour
 	[SerializeField]
 	private bool shouldLog = true;
 
+	[SerializeField]
+	private Text filePathDescText;
+
+	private string sep = ";";
+
     void Start()
     {
         SetFilePathFromArduino();
@@ -31,6 +36,8 @@ public class LogToDisk : MonoBehaviour
 
 	public void SetCustomFilePath(string path) {
 		filepath = path;
+		filePathDescText.text = "Filepath set by user.";
+		filepathText.text = path;
 	}
     public void SetFilePathFromArduino(string identifier = "logs") {
 		if (string.IsNullOrEmpty(customFilepath)) {
@@ -49,8 +56,12 @@ public class LogToDisk : MonoBehaviour
 				directory = System.Environment.GetFolderPath(System.Environment.SpecialFolder.Desktop) + "/rtii/" + identifier + "/";
 				print("Unknown");
 			}
-
-			filepath = directory + identifier + "_output.csv";
+			filepath = directory + identifier + "_output";
+			if (sep == "\t") {
+				filepath += ".tsv";
+			} else {
+				filepath += ".csv";
+			}
 			Debug.Log("Filepath: " + filepath);
 			filepathText.text = filepath;
 		}
@@ -61,9 +72,9 @@ public class LogToDisk : MonoBehaviour
     }
 	public void LogHeader(List<string> headers) {
 		if (!File.Exists(filepath)) {
-			string headerline = string.Join("\t", headers.ToArray()).Replace("\n",string.Empty);
+			string headerline = "Email" + sep + string.Join(sep, headers.ToArray()).Replace("\n",string.Empty);
 			using (StreamWriter writer = File.AppendText (filepath)) {
-				writer.WriteLine (headerline);
+				writer.WriteLine (headerline + ";");
 			}			
 		}
 	}
@@ -80,9 +91,12 @@ public class LogToDisk : MonoBehaviour
 			using (StreamWriter writer = File.AppendText (filepath)) {
 				string line = "";
 				foreach (var header in data.Keys) {
-					line += data[header][data[header].Count-1] + "\t";
+					line += data[header][data[header].Count-1] + sep;
 				}
-				writer.WriteLine (line.Replace("\n",string.Empty));
+				line = line.Replace("\n",string.Empty);
+				line = line.Substring(0,line.Length-1);
+				line = line + ";";
+				writer.WriteLine (line);
 			}		
 		}
 	}
@@ -103,7 +117,7 @@ public class LogToDisk : MonoBehaviour
 			//File.Delete (filepath);
 			string[] keys = new string[logCollection.Keys.Count];
 			logCollection.Keys.CopyTo(keys,0);
-			string dbCols = string.Join(",", keys).Replace("\n",string.Empty);
+			string dbCols = string.Join(sep, keys).Replace("\n",string.Empty);
 
 			using (StreamWriter writer = File.AppendText (filepath)) {
 				writer.WriteLine (dbCols);
@@ -117,7 +131,7 @@ public class LogToDisk : MonoBehaviour
 			foreach(string key in logCollection.Keys) {
 				row.Add(logCollection[key][i]);
 			}
-			dataString.Add(string.Join(",",row.ToArray()) + ";");
+			dataString.Add(string.Join(sep,row.ToArray()) + ";");
 		}
 		
 		foreach (var log in dataString) {
