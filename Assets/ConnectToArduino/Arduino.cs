@@ -326,9 +326,13 @@ public class Arduino : MonoBehaviour {
         arduino.ReadTimeout = 1000;
         arduino.WriteTimeout = 50; //Unfortunatly 
 
+        // We toggle DtrEnable to reset the Arduino when we open connection it. Otherwise, we may in some cases not receive the header.
+        arduino.DtrEnable = true;
         try
         {
             arduino.Open();
+            System.Threading.Thread.Sleep(1000);
+            arduino.DtrEnable = false;
         }
         catch (System.Exception e)
         {
