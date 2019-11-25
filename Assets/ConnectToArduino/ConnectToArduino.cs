@@ -29,6 +29,10 @@ public class ConnectToArduino : MonoBehaviour
     private InputField baudRateInputField;
 
     [SerializeField]
+    private GameObject ConnectionPanel;
+
+
+    [SerializeField]
     private UnityEngine.UI.Dropdown arduinoDropdown;
 
     [SerializeField]
