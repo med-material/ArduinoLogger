@@ -104,7 +104,7 @@ public class Arduino : MonoBehaviour {
         BaudRate = connectToArduino.sanitizedBaudRate;
         PortName = connectToArduino.sanitizedSerialPort;
         email = connectToArduino.email;
-        OpenPort(); //Open the serial port when the scene is loaded.
+        //OpenPort(); //Open the serial port when the scene is loaded.
     }
 
     //Process the data we get from our Arduino (this function might be called more often than Update(), depending on the chosen polling rate)
@@ -112,7 +112,6 @@ public class Arduino : MonoBehaviour {
         if (!ParseIncomingData) {
             return;
         }
-
         // Read what is our current state
         if (receiverState == ReceiverState.Standby) {
             // Check for "BEGIN" string.
@@ -123,6 +122,7 @@ public class Arduino : MonoBehaviour {
 
                 // Initialize the log dictionary
                 logCollection = new Dictionary<string, List<string>>();
+                Debug.Log("logcollection is created");
 
                 receiverState = ReceiverState.ReadingHeader;					
             }
@@ -175,8 +175,9 @@ public class Arduino : MonoBehaviour {
         }
         
         if (receiverState == ReceiverState.LoggingFinished && logCollection.Count > 0) {
+            Debug.Log("state : Finished");
             onLoggingFinished.Invoke(logCollection);
-
+            OnDisable();
             // Reset receiverState to Standby.
             receiverState = ReceiverState.Standby;
 
@@ -200,7 +201,13 @@ public class Arduino : MonoBehaviour {
         //Feel free to add new variables (both here and in the Arduino script).
     }
 
-	private void ParseDataArguments(string s) {
+    public void changefinishstate()
+    {
+        receiverState = ReceiverState.LoggingFinished;
+        
+    }
+
+    private void ParseDataArguments(string s) {
 		var start = s.IndexOf("(")+1;
 		var end = s.LastIndexOf(")");
 		string[] dataArgs = s.Substring(start, end - start).Split(',');
@@ -290,11 +297,11 @@ public class Arduino : MonoBehaviour {
                 readTimeouts++;
 
                 //If we time out many times, then something is propably wrong with the serial port, in which case we will try to reopen it.
-                if (readTimeouts > 5000)
+                /*if (readTimeouts > 5000)
                 {
                     Debug.Log("No data recieved for a long time (" + PortName + ").\n" + e.ToString());
                     ReopenPort();
-                } 
+                } */
             }
             //Make the coroutine take a break, to allow Unity to also use the CPU.
             //This currently doesn't account for the time the coroutine actually takes to run (~1ms) and thus isn't the true polling rate.
@@ -302,7 +309,7 @@ public class Arduino : MonoBehaviour {
         }
     }
 
-    void ReopenPort()
+    public void ReopenPort()
     {
         Debug.Log("Trying to reopen SerialPort with name " + PortName + ". Try #" + retries);
         StopCoroutine(SerialUpdate);
@@ -320,7 +327,7 @@ public class Arduino : MonoBehaviour {
         
     }
 
-    void OpenPort()
+    public void OpenPort()
     {
         arduino = new SerialPort(PortName, BaudRate);
         arduino.ReadTimeout = 1000;
@@ -373,7 +380,7 @@ public class Arduino : MonoBehaviour {
         StartCoroutine(SerialUpdate); 
     }
 
-    void OnDisable()
+    public void OnDisable()
     {
         StopCoroutine(ReadIncomingData());
         arduino.Close();

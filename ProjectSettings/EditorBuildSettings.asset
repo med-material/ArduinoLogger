@@ -6,7 +6,7 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
-    path: Assets/ConnectToArduino/ConnectToArduino.unity
+    path: Assets/ConnectToArduino.unity
     guid: 2b09e7ecc38d671499a5043db825806c
   - enabled: 1
     path: Assets/DataLogging.unity
