@@ -40,6 +40,12 @@ public class ConnectToMySQL : MonoBehaviour {
 	private Text statusMessage;
 
 	[SerializeField]
+	private Button SendingButton;
+    
+	[SerializeField]
+	private Text SendingDoneText;
+	
+	[SerializeField]
 	private Color errorColor;
 	private Color defaultColor;
 
@@ -248,6 +254,8 @@ public class ConnectToMySQL : MonoBehaviour {
         } else {
 			Debug.Log ("Posted successfully");
 			statusMessage.text = "Posted successfully".ToUpper();
+			SendingDoneText.text = "Data sended to the database!";
+			SendingButton.interactable=false;
 			statusMessage.color = defaultColor;			
 			// Clear datadump structures in case we are submitting dumped data
 			dataDumps.Clear();

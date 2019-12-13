@@ -11,16 +11,19 @@ public class ArduinoStatus : MonoBehaviour
     [SerializeField]
     private Text statusSubText;
 
-    [SerializeField]
-    private Button disconnectButton;
-
-    [SerializeField]
-    private GameObject finishedImage;
-
     // Start is called before the first frame update
     void Start()
     {
         
+    }
+    public void OnSaving()
+    {
+        statusText.text = "Saving Logs...";
+    }
+
+      public void OnSending()
+    {
+        statusText.text = "Sending Logs to the database...";
     }
 
     public void OnArduinoStarted() {
@@ -33,6 +36,5 @@ public class ArduinoStatus : MonoBehaviour
 
     public void OnArduinoInterrupted() {
         statusText.text = "Arduino is ready to be logged.";
-        finishedImage.SetActive(false);
     }
 }

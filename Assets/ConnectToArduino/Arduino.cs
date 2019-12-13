@@ -41,11 +41,13 @@ public class Arduino : MonoBehaviour {
         Standby,
 		ReadingHeader,
         ReadingData,
-		LoggingFinished
+		LoggingFinished,
+        DatabaseSending
     }
 
 	private ReceiverState receiverState;
 
+    private bool save = false;
 
     /* 
     * Arduino Connection Setup
@@ -71,6 +73,7 @@ public class Arduino : MonoBehaviour {
     private int numberOfColumns = 1;
     public string separator = "\t";
     private string email;
+    private string Comment;
     private Dictionary<string, List<string>> logCollection;
     public List<string> headers;
 
@@ -85,6 +88,11 @@ public class Arduino : MonoBehaviour {
 
     public delegate void NewHeaderEventHandler(List<string> arduinoHeaders);
     public static event NewHeaderEventHandler NewHeaderEvent;
+
+    [Serializable]
+    public class Sendingtodb : UnityEvent<Dictionary<string, List<string>>> { }
+    public Sendingtodb pushdata;
+
     [Serializable]
     public class OnLoggingFinished : UnityEvent<Dictionary<string, List<string>>> { }
     public OnLoggingFinished onLoggingFinished;
@@ -103,6 +111,7 @@ public class Arduino : MonoBehaviour {
         BaudRate = connectToArduino.sanitizedBaudRate;
         PortName = connectToArduino.sanitizedSerialPort;
         email = connectToArduino.email;
+        Comment = connectToArduino.comment;
         //OpenPort(); //Open the serial port when the scene is loaded.
     }
 
@@ -131,6 +140,7 @@ public class Arduino : MonoBehaviour {
             if (NewHeaderEvent != null)   //Check that someone is actually subscribed to the event
                 NewHeaderEvent(headers);     //Fire the event in case someone is subscribed            
             logCollection.Add("Email", new List<string>());
+            logCollection.Add("Comment", new List<string>());
             // Check that header contains the expected number of columns. 
             if (headers.Count == numberOfColumns) {
                 foreach (var header in headers) {
@@ -153,6 +163,7 @@ public class Arduino : MonoBehaviour {
                 // Check that bodyData contains the expected number of columns. 
                 if (bodyData.Length == numberOfColumns) {
                     logCollection["Email"].Add(email);
+                    logCollection["Comment"].Add(Comment);
                     for (int i = 0; i < bodyData.Length; i++) {
                         string header = headers[i];
                         string sanitizedValue = new string((from c in bodyData[i] where char.IsLetterOrDigit(c) || char.IsPunctuation(c) select c).ToArray());
@@ -170,14 +181,7 @@ public class Arduino : MonoBehaviour {
             }
         }
         
-        if (receiverState == ReceiverState.LoggingFinished && logCollection.Count > 0) {
-            Debug.Log("state : Finished");
-            onLoggingFinished.Invoke(logCollection);
-            OnDisable();
-            // Reset receiverState to Standby.
-            receiverState = ReceiverState.Standby;
-
-        }
+      /*  */
 
         // ----- INPUT FROM ARDUINO TO UNITY ----- //
         //From here you can do what ever you want with the data.
@@ -197,10 +201,24 @@ public class Arduino : MonoBehaviour {
         //Feel free to add new variables (both here and in the Arduino script).
     }
 
+    public void publishlog()
+    {
+        receiverState = ReceiverState.DatabaseSending;
+        Debug.Log("state : sending");
+        pushdata.Invoke(logCollection);
+        // Reset receiverState to Standby.
+        receiverState = ReceiverState.Standby;
+    }
+
+
     public void changefinishstate()
     {
         receiverState = ReceiverState.LoggingFinished;
-        
+        Debug.Log("state : Finished");
+        onLoggingFinished.Invoke(logCollection);
+        // Reset receiverState to Standby.
+        receiverState = ReceiverState.Standby;
+
     }
 
     private void ParseDataArguments(string s) {

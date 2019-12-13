@@ -8,7 +8,12 @@ using SFB;
 
 public class LogToDisk : MonoBehaviour
 {
+    [SerializeField]
+	private Text SendingDoneText;
 
+    [SerializeField]
+	private Button SaveButton;
+    
     private string filepath = "";
 
     [SerializeField]
@@ -106,6 +111,8 @@ public class LogToDisk : MonoBehaviour
         }
 
         Debug.Log("Data logged to: " + filepath);
+        SendingDoneText.text = "Data saved in " + filepath;
+        SaveButton.interactable=false;
     }
 }
 

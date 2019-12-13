@@ -23,6 +23,9 @@ public class ConnectToArduino : MonoBehaviour
     private InputField emailInputField;
 
     [SerializeField]
+    private InputField CommentInputField;
+
+    [SerializeField]
     private InputField serialPortInputField;
 
     [SerializeField]
@@ -50,6 +53,7 @@ public class ConnectToArduino : MonoBehaviour
 
     public string email;
 
+    public string comment;
     private EventSystem eventSystem;
 	private static SerialPort serialport;
 
@@ -155,6 +159,18 @@ public class ConnectToArduino : MonoBehaviour
         UnityEngine.Debug.Log(sanitizedBaudRate);
         serialport = new SerialPort (sanitizedSerialPort, sanitizedBaudRate);
         email = emailInputField.text;
+        comment = CommentInputField.text;
+        Debug.Log(email);
+        if( string.IsNullOrEmpty( CommentInputField.text ))
+        {
+            comment = "NULL";
+            Debug.Log("Comment is empty");
+        }
+        else
+        {
+            comment = CommentInputField.text;
+            Debug.Log("Commentary: " + comment);
+        }
         connectingToArduino = true;
         bool connected = OpenConnection();
         if (connected) {
