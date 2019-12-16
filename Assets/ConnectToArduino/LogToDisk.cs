@@ -116,12 +116,15 @@ public class LogToDisk : MonoBehaviour
         Debug.Log("Data logged to: " + filepath);
         SendingDoneTitleText.text = "Data saved in " + filepath;
         SendingDoneButtonText.text = "CSV File Saved";
+        SendingDoneButtonText.color = Color.grey;
         SaveButton.interactable=false;
     }
 
     public void resettextbutton()
     {
 		SendingDoneButtonText.text = "Save Logs to CSV";
+        SendingDoneButtonText.color = Color.black;
+        
     }
 }
 

@@ -261,6 +261,7 @@ public class ConnectToMySQL : MonoBehaviour {
 			statusMessage.text = "Posted successfully".ToUpper();
 			SendingDoneTitleText.text = "Data sended to the database!";
 			SendingDoneButtonText.text = "LogPublished";
+			SendingDoneButtonText.color = Color.grey;
 			SendingButton.interactable=false;
 			statusMessage.color = defaultColor;			
 			// Clear datadump structures in case we are submitting dumped data
@@ -271,8 +272,11 @@ public class ConnectToMySQL : MonoBehaviour {
 
 	}
 
-public void resettextbutton(){
-				SendingDoneButtonText.text = "Publish Log";
+public void resettextbutton()
+{
+	SendingDoneButtonText.text = "Publish Log";
+	SendingDoneButtonText.color = Color.black;
+
 }
 	private void DumpLogsToUpload() {
 		if (dataDumps.Count > 0 && colDumps.Count > 0 && tableNameDumps.Count > 0) {
