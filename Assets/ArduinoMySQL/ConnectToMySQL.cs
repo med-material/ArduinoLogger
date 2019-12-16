@@ -43,7 +43,10 @@ public class ConnectToMySQL : MonoBehaviour {
 	private Button SendingButton;
     
 	[SerializeField]
-	private Text SendingDoneText;
+	private Text SendingDoneTitleText;
+
+	[SerializeField]
+	private Text SendingDoneButtonText;
 	
 	[SerializeField]
 	private Color errorColor;
@@ -182,6 +185,7 @@ public class ConnectToMySQL : MonoBehaviour {
 			}
 			logsToUpload.Clear();
 		}
+		
 	}
 	private string ParseDataToString(Dictionary<string, List<string>> logCollection) {
 		// Create a string with the data
@@ -242,6 +246,7 @@ public class ConnectToMySQL : MonoBehaviour {
 
 		if(www.isNetworkError || www.isHttpError) {
             Debug.LogError(("Unable to submit logs: " + www.error));
+			SendingDoneTitleText.text = "Unable To Connect to the database :" + www.error + " data are not pushed to the database";
 			statusMessage.text = (www.downloadHandler.text).ToUpper();
 			statusMessage.color = errorColor;
             Debug.LogError(www.downloadHandler.text);
@@ -254,7 +259,8 @@ public class ConnectToMySQL : MonoBehaviour {
         } else {
 			Debug.Log ("Posted successfully");
 			statusMessage.text = "Posted successfully".ToUpper();
-			SendingDoneText.text = "Data sended to the database!";
+			SendingDoneTitleText.text = "Data sended to the database!";
+			SendingDoneButtonText.text = "LogPublished";
 			SendingButton.interactable=false;
 			statusMessage.color = defaultColor;			
 			// Clear datadump structures in case we are submitting dumped data
@@ -265,6 +271,9 @@ public class ConnectToMySQL : MonoBehaviour {
 
 	}
 
+public void resettextbutton(){
+				SendingDoneButtonText.text = "Publish Log";
+}
 	private void DumpLogsToUpload() {
 		if (dataDumps.Count > 0 && colDumps.Count > 0 && tableNameDumps.Count > 0) {
 			for (int i = 0; i < dataDumps.Count; i++) {

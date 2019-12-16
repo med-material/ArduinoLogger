@@ -9,7 +9,10 @@ using SFB;
 public class LogToDisk : MonoBehaviour
 {
     [SerializeField]
-	private Text SendingDoneText;
+	private Text SendingDoneTitleText;
+
+    [SerializeField]
+	private Text SendingDoneButtonText;
 
     [SerializeField]
 	private Button SaveButton;
@@ -111,8 +114,14 @@ public class LogToDisk : MonoBehaviour
         }
 
         Debug.Log("Data logged to: " + filepath);
-        SendingDoneText.text = "Data saved in " + filepath;
+        SendingDoneTitleText.text = "Data saved in " + filepath;
+        SendingDoneButtonText.text = "CSV File Saved";
         SaveButton.interactable=false;
+    }
+
+    public void resettextbutton()
+    {
+		SendingDoneButtonText.text = "Save Logs to CSV";
     }
 }
 

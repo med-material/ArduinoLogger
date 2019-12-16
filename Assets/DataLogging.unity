@@ -244,7 +244,7 @@ MonoBehaviour:
     m_NormalColor: {r: 1, g: 1, b: 1, a: 1}
     m_HighlightedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
     m_PressedColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 1}
-    m_DisabledColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 0.5019608}
+    m_DisabledColor: {r: 1, g: 1, b: 1, a: 0.5019608}
     m_ColorMultiplier: 1
     m_FadeDuration: 0.1
   m_SpriteState:
@@ -553,7 +553,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 779e16618c86b9ac29a933b30d969acc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  SendingDoneText: {fileID: 407399847}
+  SendingDoneTitleText: {fileID: 407399847}
+  SendingDoneButtonText: {fileID: 1795528038}
   SaveButton: {fileID: 118978591}
   shouldLog: 1
   arduinoObject: {fileID: 950681916}
@@ -1310,7 +1311,7 @@ MonoBehaviour:
     m_NormalColor: {r: 1, g: 1, b: 1, a: 1}
     m_HighlightedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
     m_PressedColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 1}
-    m_DisabledColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 0.5019608}
+    m_DisabledColor: {r: 1, g: 1, b: 1, a: 0.5019608}
     m_ColorMultiplier: 1
     m_FadeDuration: 0.1
   m_SpriteState:
@@ -2354,7 +2355,8 @@ MonoBehaviour:
   builtInCredentials: {fileID: 4900000, guid: 8ea2f2e47aca76b41add7658c0c13968, type: 3}
   statusMessage: {fileID: 295343692}
   SendingButton: {fileID: 564101067}
-  SendingDoneText: {fileID: 407399847}
+  SendingDoneTitleText: {fileID: 407399847}
+  SendingDoneButtonText: {fileID: 1606217797}
   errorColor: {r: 0.74509805, g: 0.11372549, b: 0.11372549, a: 1}
 --- !u!4 &870000800
 Transform:
@@ -2831,6 +2833,28 @@ MonoBehaviour:
           m_ObjectArgument: {fileID: 21300000, guid: 5102d6ae40266614dbb7802f3877cd5d,
             type: 3}
           m_ObjectArgumentAssemblyTypeName: UnityEngine.Sprite, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 1
+        m_CallState: 2
+      - m_Target: {fileID: 261821323}
+        m_MethodName: resettextbutton
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 1
+        m_CallState: 2
+      - m_Target: {fileID: 870000799}
+        m_MethodName: resettextbutton
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
           m_IntArgument: 0
           m_FloatArgument: 0
           m_StringArgument: 
