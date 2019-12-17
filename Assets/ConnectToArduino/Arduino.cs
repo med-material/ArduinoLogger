@@ -72,7 +72,6 @@ public class Arduino : MonoBehaviour {
     private Dictionary<string, string> NewestIncomingData;
     private int numberOfColumns = 1;
     public string separator = "\t";
-    private string outputLabel;
     private string email;
     private string Comment;
     private Dictionary<string, List<string>> logCollection;
@@ -152,7 +151,6 @@ public class Arduino : MonoBehaviour {
                 // Otherwise error out and go to Standby Mode.
                 Debug.LogError("Received " + headers.Count + "columns, but Arduino reported " + numberOfColumns + "! Data Discarded..");
                 receiverState = ReceiverState.Standby;
-                onLoggingInterrupted.Invoke(outputLabel);
             }
         } else if (receiverState == ReceiverState.ReadingData) {
             // Check for "END" strings
