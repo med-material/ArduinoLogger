@@ -260,7 +260,7 @@ public class ConnectToMySQL : MonoBehaviour {
 			Debug.Log ("Posted successfully");
 			statusMessage.text = "Posted successfully".ToUpper();
 			SendingDoneTitleText.text = "Data sended to the database!";
-			SendingDoneButtonText.text = "LogPublished";
+			SendingDoneButtonText.text = "Log Published";
 			SendingDoneButtonText.color = Color.grey;
 			SendingButton.interactable=false;
 			statusMessage.color = defaultColor;			
