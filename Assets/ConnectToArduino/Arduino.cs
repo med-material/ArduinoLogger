@@ -72,6 +72,7 @@ public class Arduino : MonoBehaviour {
     private Dictionary<string, string> NewestIncomingData;
     private int numberOfColumns = 1;
     public string separator = "\t";
+    private string outputLabel;
     private string email;
     private string Comment;
     private Dictionary<string, List<string>> logCollection;
@@ -126,7 +127,7 @@ public class Arduino : MonoBehaviour {
             if (serialInput.Contains ("LOG BEGIN")) {
                 // Parse Reported Column and Separator
                 ParseDataArguments(serialInput);
-
+                onLoggingStarted.Invoke(outputLabel);
                 // Initialize the log dictionary
                 logCollection = new Dictionary<string, List<string>>();
                 Debug.Log("logcollection is created");
@@ -151,6 +152,7 @@ public class Arduino : MonoBehaviour {
                 // Otherwise error out and go to Standby Mode.
                 Debug.LogError("Received " + headers.Count + "columns, but Arduino reported " + numberOfColumns + "! Data Discarded..");
                 receiverState = ReceiverState.Standby;
+                onLoggingInterrupted.Invoke(outputLabel);
             }
         } else if (receiverState == ReceiverState.ReadingData) {
             // Check for "END" strings
@@ -245,7 +247,12 @@ public class Arduino : MonoBehaviour {
 					if (!result) {
 						Debug.LogError("Could not parse column length argument: " + val + " - use fx LOG BEGIN (col=5).");
 					}
-			} else {
+                    } 
+                    else if (param == "label") 
+                    { 
+					    outputLabel = val;
+			        } 
+                    else {
 				Debug.LogWarning("Arduino reported an unknown parameter: " + param);
 			}
 		}
