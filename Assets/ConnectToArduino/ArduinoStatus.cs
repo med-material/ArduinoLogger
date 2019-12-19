@@ -23,18 +23,18 @@ public class ArduinoStatus : MonoBehaviour
 
       public void OnSending()
     {
-        statusText.text = "Sending Logs to the database...";
+        statusText.text = "Sending Logs To The Database...";
     }
 
     public void OnArduinoStarted() {
-        statusText.text = "Arduino is sending data..";
+        statusText.text = "Arduino Is Sending Data..";
     }
 
     public void OnArduinoFinished() {
-        statusText.text = "Arduino logging has finished.";
+        statusText.text = "Arduino Logging Has Finished.";
     }
 
     public void OnArduinoInterrupted() {
-        statusText.text = "Arduino is ready to be logged.";
+        statusText.text = "Arduino Is Ready To Be Logged.";
     }
 }

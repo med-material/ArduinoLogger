@@ -228,7 +228,7 @@ public class Arduino : MonoBehaviour {
         stopbutton.SetActive(false);
         subtext.SetActive(true);
         restartbutton.SetActive(true);
-        statustext.text="Arduino logging has finished.";
+        statustext.text="Arduino logging Has Finished.";
     }
 
     public void changefinishstate()
