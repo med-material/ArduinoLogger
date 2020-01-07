@@ -49,6 +49,13 @@ public class Arduino : MonoBehaviour {
 
     private bool save = false;
 
+    public GameObject savebutton;
+    public GameObject publishbutton;
+    public GameObject stopbutton;
+    public GameObject subtext;
+    public GameObject restartbutton;
+    public Text statustext;
+
     /* 
     * Arduino Connection Setup
     */
@@ -156,6 +163,8 @@ public class Arduino : MonoBehaviour {
             // Check for "END" strings
             if (serialInput.Contains ("LOG END")) {
                 receiverState = ReceiverState.LoggingFinished;
+                ChangeButtonOnEnd();
+                OnDisable();
             } else {
                 // Parse data
                 var bodyData = serialInput.Split('\t');
@@ -210,6 +219,15 @@ public class Arduino : MonoBehaviour {
         receiverState = ReceiverState.Standby;
     }
 
+    public void ChangeButtonOnEnd(){
+
+        savebutton.SetActive(true);
+        publishbutton.SetActive(true);
+        stopbutton.SetActive(false);
+        subtext.SetActive(true);
+        restartbutton.SetActive(true);
+        statustext.text="Arduino logging Has Finished.";
+    }
 
     public void changefinishstate()
     {
