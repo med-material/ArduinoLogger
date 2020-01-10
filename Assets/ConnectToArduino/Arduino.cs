@@ -82,6 +82,7 @@ public class Arduino : MonoBehaviour {
     private string outputLabel;
     private string email;
     private string Comment;
+    private string timestamp;
     private Dictionary<string, List<string>> logCollection;
     public List<string> headers;
 
@@ -143,10 +144,12 @@ public class Arduino : MonoBehaviour {
             }
         } else if (receiverState == ReceiverState.ReadingHeader) {
             // Parse header
+            timestamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
             headers = new List<string>();				
             headers = serialInput.Split('\t').ToList();
             if (NewHeaderEvent != null)   //Check that someone is actually subscribed to the event
-                NewHeaderEvent(headers);     //Fire the event in case someone is subscribed            
+                NewHeaderEvent(headers);     //Fire the event in case someone is subscribed  
+            logCollection.Add("TimeStamp", new List<string>());          
             logCollection.Add("Email", new List<string>());
             logCollection.Add("Comment", new List<string>());
             // Check that header contains the expected number of columns. 
@@ -173,6 +176,7 @@ public class Arduino : MonoBehaviour {
 
                 // Check that bodyData contains the expected number of columns. 
                 if (bodyData.Length == numberOfColumns) {
+                    logCollection["TimeStamp"].Add(timestamp);
                     logCollection["Email"].Add(email);
                     logCollection["Comment"].Add(Comment);
                     for (int i = 0; i < bodyData.Length; i++) {
