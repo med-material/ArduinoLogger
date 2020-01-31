@@ -1031,7 +1031,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: -0.000017859587, y: 0.00002707421}
+  m_AnchoredPosition: {x: -0.000017859587, y: -0.000033960947}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0, y: 1}
 --- !u!114 &471695401
@@ -2120,7 +2120,7 @@ MonoBehaviour:
   m_HandleRect: {fileID: 2053938093}
   m_Direction: 0
   m_Value: 0
-  m_Size: 0.9999999
+  m_Size: 1
   m_NumberOfSteps: 0
   m_OnValueChanged:
     m_PersistentCalls:
@@ -2363,11 +2363,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ab22e7b89d1224d5cb1ceb845cd6aead, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  builtInCredentials: {fileID: 4900000, guid: 8ea2f2e47aca76b41add7658c0c13968, type: 3}
+  builtInCredentials: {fileID: 4900000, guid: ae769213d96a48b468a0076cac71e88b, type: 3}
   statusMessage: {fileID: 295343692}
-  SendingButton: {fileID: 564101067}
-  SendingDoneTitleText: {fileID: 407399847}
-  SendingDoneButtonText: {fileID: 1606217797}
   errorColor: {r: 0.74509805, g: 0.11372549, b: 0.11372549, a: 1}
 --- !u!4 &870000800
 Transform:
