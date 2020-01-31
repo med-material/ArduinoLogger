@@ -69,6 +69,7 @@ public class Arduino : MonoBehaviour {
     private SerialPort arduino; 
     private int writeTimeouts = 0;
     private int retries = 0;
+    private string outputLabel;
     private IEnumerator SerialUpdate;
 
     /* 
