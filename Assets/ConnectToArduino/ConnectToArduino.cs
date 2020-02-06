@@ -32,6 +32,9 @@ public class ConnectToArduino : MonoBehaviour
     private InputField baudRateInputField;
 
     [SerializeField]
+    private InputField PIDInputField;
+
+    [SerializeField]
     private GameObject ConnectionPanel;
 
 
@@ -52,6 +55,7 @@ public class ConnectToArduino : MonoBehaviour
     private bool connectingToArduino = false;
 
     public string email;
+    public string pid;
 
     public string comment;
     private EventSystem eventSystem;
@@ -170,6 +174,14 @@ public class ConnectToArduino : MonoBehaviour
         {
             comment = CommentInputField.text;
             Debug.Log("Commentary: " + comment);
+        }
+        if( string.IsNullOrEmpty( PIDInputField.text ))
+        {
+            pid = "NULL";
+        }
+        else
+        {
+            pid = PIDInputField.text;
         }
         connectingToArduino = true;
         bool connected = OpenConnection();
