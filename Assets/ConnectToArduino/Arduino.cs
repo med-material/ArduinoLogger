@@ -81,6 +81,7 @@ public class Arduino : MonoBehaviour {
     private int numberOfColumns = 1;
     public string separator = "\t";
     private string email;
+    private string pid;
     private string Comment;
     private string timestamp;
     private Dictionary<string, List<string>> logCollection;
@@ -121,6 +122,7 @@ public class Arduino : MonoBehaviour {
         PortName = connectToArduino.sanitizedSerialPort;
         email = connectToArduino.email;
         Comment = connectToArduino.comment;
+        pid = connectToArduino.pid;
         //OpenPort(); //Open the serial port when the scene is loaded.
     }
 
@@ -152,6 +154,7 @@ public class Arduino : MonoBehaviour {
             logCollection.Add("TimeStamp", new List<string>());          
             logCollection.Add("Email", new List<string>());
             logCollection.Add("Comment", new List<string>());
+            logCollection.Add("PID", new List<string>());
             // Check that header contains the expected number of columns. 
             if (headers.Count == numberOfColumns) {
                 foreach (var header in headers) {
@@ -178,6 +181,7 @@ public class Arduino : MonoBehaviour {
                     logCollection["TimeStamp"].Add(timestamp);
                     logCollection["Email"].Add(email);
                     logCollection["Comment"].Add(Comment);
+                    logCollection["PID"].Add(pid);
                     for (int i = 0; i < bodyData.Length; i++) {
                         string header = headers[i];
                         string sanitizedValue = new string((from c in bodyData[i] where char.IsLetterOrDigit(c) || char.IsPunctuation(c) select c).ToArray());
