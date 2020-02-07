@@ -1031,7 +1031,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: -0.000017859587, y: -0.000033960947}
+  m_AnchoredPosition: {x: 0.000012657991, y: 0.00002707421}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0, y: 1}
 --- !u!114 &471695401
@@ -2344,6 +2344,7 @@ GameObject:
   m_Component:
   - component: {fileID: 870000800}
   - component: {fileID: 870000799}
+  - component: {fileID: 870000801}
   m_Layer: 0
   m_Name: ConnectToMySQL
   m_TagString: Untagged
@@ -2366,6 +2367,22 @@ MonoBehaviour:
   builtInCredentials: {fileID: 4900000, guid: ae769213d96a48b468a0076cac71e88b, type: 3}
   statusMessage: {fileID: 295343692}
   errorColor: {r: 0.74509805, g: 0.11372549, b: 0.11372549, a: 1}
+  onLogsUploaded:
+    m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 870000801}
+        m_MethodName: ShowRShinyWebApplication
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+    m_TypeName: ConnectToMySQL+OnLogsUploaded, Assembly-CSharp, Version=0.0.0.0, Culture=neutral,
+      PublicKeyToken=null
 --- !u!4 &870000800
 Transform:
   m_ObjectHideFlags: 0
@@ -2380,6 +2397,18 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 3
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &870000801
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 870000798}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8a509c8b47282c9439e03368497d7c72, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &901601542
 GameObject:
   m_ObjectHideFlags: 0
@@ -2608,6 +2637,17 @@ MonoBehaviour:
       - m_Target: {fileID: 870000799}
         m_MethodName: SetDatabaseTable
         m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+      - m_Target: {fileID: 870000801}
+        m_MethodName: GetTargetDatabaseTable
+        m_Mode: 5
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
           m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
