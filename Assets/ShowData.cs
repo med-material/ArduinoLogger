@@ -6,10 +6,12 @@ public class ShowData : MonoBehaviour
 {
     
     string webapplication = "";
+    string email;
     // Start is called before the first frame update
     void Start()
     {
-        
+        var connectToArduino = GameObject.Find("ConnectToArduino").GetComponent<ConnectToArduino>();
+        email = connectToArduino.email;
     }
 
     // Update is called once per frame
@@ -20,7 +22,8 @@ public class ShowData : MonoBehaviour
 
     public void GetTargetDatabaseTable(string tablename) {
         if (tablename == "reactiontime" || tablename == "synch") {
-            webapplication = "http://create-rapps01.srv.aau.dk/reaction-synch-tests/";
+            webapplication = "http://create-rapps01.srv.aau.dk/reaction-synch-tests/" + "?email=" + email;
+            // format: http://create-rapps01.srv.aau.dk/reaction-synch-tests/?email=buildwin@aau.dk
         } 
     }
 
