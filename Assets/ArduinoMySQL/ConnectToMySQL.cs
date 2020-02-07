@@ -4,9 +4,20 @@ using System.Collections;
 using System.IO;
 using System;
 using UnityEngine.Networking;
+using UnityEngine.Events;
 using System.Text;
 using System.Linq;
 using UnityEngine.UI;
+
+public enum LogUploadStatus {
+    Success,
+    Error,
+}
+
+public class LogUploadResult {
+	public LogUploadStatus status;
+	public string error;
+}
 
 public class ConnectToMySQL : MonoBehaviour {
 	public static string response = "";
@@ -58,6 +69,11 @@ public class ConnectToMySQL : MonoBehaviour {
 	private GameObject connectButton;
 
 	private GameObject eventSystem;
+
+	[Serializable]
+    public class OnLogsUploaded : UnityEvent<LogUploadResult> { }
+    public OnLogsUploaded onLogsUploaded;
+
 	void Awake() {
 		if (statusMessage != null) {
 			defaultColor = statusMessage.color;
@@ -251,12 +267,12 @@ public class ConnectToMySQL : MonoBehaviour {
 		form.AddField ("dataPost", dataString);
 		return form;
 	}
-	public void SetDatabaseTable(string tableName) 
+	public void SetDatabaseTable(string tableName)
 	{
 
 		credentials["tableName"] = tableName;
 	}
-	
+
 	private IEnumerator SubmitLogs(WWWForm form) {
 		
 		Debug.Log ("Submitting logs..");
@@ -268,7 +284,11 @@ public class ConnectToMySQL : MonoBehaviour {
 
 		yield return www.SendWebRequest();
 
+		LogUploadResult logUploadResult = new LogUploadResult();
 		if(www.isNetworkError || www.isHttpError) {
+			logUploadResult.status = LogUploadStatus.Error;
+			logUploadResult.error = www.error;
+			onLogsUploaded.Invoke(logUploadResult);
             Debug.LogError(("Unable to submit logs: " + www.error));
 			if (statusMessage != null) {
 				statusMessage.text = (www.downloadHandler.text);
@@ -290,6 +310,9 @@ public class ConnectToMySQL : MonoBehaviour {
 			// Clear datadump structures in case we are submitting dumped data
 			dataDumps.Clear();
 			colDumps.Clear();
+			logUploadResult.status = LogUploadStatus.Success;
+			logUploadResult.error = "";
+			onLogsUploaded.Invoke(logUploadResult);
 		}
 
 	}
