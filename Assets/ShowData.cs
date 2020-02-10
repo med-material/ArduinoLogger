@@ -1,12 +1,17 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class ShowData : MonoBehaviour
 {
     
     string webapplication = "";
     string email;
+
+    [SerializeField]
+    private GameObject showDataButton;
+
     // Start is called before the first frame update
     void Start()
     {
@@ -20,16 +25,20 @@ public class ShowData : MonoBehaviour
         
     }
 
-    public void GetTargetDatabaseTable(string tablename) {
+    public void SetTargetDatabaseTable(string tablename) {
         if (tablename == "reactiontime" || tablename == "synch" || tablename == "EDAIBISerial") {
             webapplication = "http://create-rapps01.srv.aau.dk/reaction-synch-tests/" + "?email=" + email + "&subject=" + tablename;
             // format: http://create-rapps01.srv.aau.dk/reaction-synch-tests/?email=buildwin@aau.dk&subject=synch
         } 
     }
 
-    public void ShowRShinyWebApplication(LogUploadResult logUploadResult) {
+    public void TriggerShowDataVisibility(LogUploadResult logUploadResult) {
         if (logUploadResult.status == LogUploadStatus.Success) {
-            Application.OpenURL(webapplication);
+            showDataButton.SetActive(true);
         }
+    }
+
+    public void ShowRShinyWebApplication() {
+        Application.OpenURL(webapplication);
     }
 }
