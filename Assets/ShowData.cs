@@ -21,9 +21,9 @@ public class ShowData : MonoBehaviour
     }
 
     public void GetTargetDatabaseTable(string tablename) {
-        if (tablename == "reactiontime" || tablename == "synch") {
-            webapplication = "http://create-rapps01.srv.aau.dk/reaction-synch-tests/" + "?email=" + email;
-            // format: http://create-rapps01.srv.aau.dk/reaction-synch-tests/?email=buildwin@aau.dk
+        if (tablename == "reactiontime" || tablename == "synch" || tablename == "EDAIBISerial") {
+            webapplication = "http://create-rapps01.srv.aau.dk/reaction-synch-tests/" + "?email=" + email + "&subject=" + tablename;
+            // format: http://create-rapps01.srv.aau.dk/reaction-synch-tests/?email=buildwin@aau.dk&subject=synch
         } 
     }
 
