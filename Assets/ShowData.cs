@@ -8,6 +8,7 @@ public class ShowData : MonoBehaviour
     
     string webapplication = "";
     string email;
+    string pid;
 
     [SerializeField]
     private GameObject showDataButton;
@@ -17,6 +18,7 @@ public class ShowData : MonoBehaviour
     {
         var connectToArduino = GameObject.Find("ConnectToArduino").GetComponent<ConnectToArduino>();
         email = connectToArduino.email;
+        pid = connectToArduino.pid;
     }
 
     // Update is called once per frame
@@ -27,7 +29,7 @@ public class ShowData : MonoBehaviour
 
     public void SetTargetDatabaseTable(string tablename) {
         if (tablename == "reactiontime" || tablename == "synch" || tablename == "EDAIBISerial") {
-            webapplication = "http://create-rapps01.srv.aau.dk/reaction-synch-tests/" + "?email=" + email + "&subject=" + tablename;
+            webapplication = "http://create-rapps01.srv.aau.dk/reaction-synch-tests/" + "?email=" + email + "&subject=" + tablename + "&pid=" + pid;
             // format: http://create-rapps01.srv.aau.dk/reaction-synch-tests/?email=buildwin@aau.dk&subject=synch
         } 
     }
