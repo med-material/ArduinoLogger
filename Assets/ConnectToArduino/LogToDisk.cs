@@ -57,7 +57,7 @@ public class LogToDisk : MonoBehaviour
     
         if (!File.Exists(filepath))
         {
-            string headerline = "Email" + sep + string.Join(sep, headers.ToArray()).Replace("\n", string.Empty);
+            string headerline = "TimeStamp" + sep + "Email" + sep + "Comment" + sep + "PID" + sep + string.Join(sep, headers.ToArray()).Replace("\n", string.Empty);
             using (StreamWriter writer = File.AppendText(filepath))
             {
                 writer.WriteLine(headerline + ";");
