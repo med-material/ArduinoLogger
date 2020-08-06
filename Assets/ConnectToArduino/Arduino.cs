@@ -146,7 +146,7 @@ public class Arduino : MonoBehaviour {
             }
         } else if (receiverState == ReceiverState.ReadingHeader) {
             // Parse header
-            timestamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
+            timestamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.ffff");
             headers = new List<string>();				
             headers = serialInput.Split('\t').ToList();
             if (NewHeaderEvent != null)   //Check that someone is actually subscribed to the event
@@ -178,7 +178,7 @@ public class Arduino : MonoBehaviour {
 
                 // Check that bodyData contains the expected number of columns. 
                 if (bodyData.Length == numberOfColumns) {
-                    logCollection["TimeStamp"].Add(timestamp);
+                    logCollection["TimeStamp"].Add(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.ffff"));
                     logCollection["Email"].Add(email);
                     logCollection["Comment"].Add(Comment);
                     logCollection["PID"].Add(pid);
