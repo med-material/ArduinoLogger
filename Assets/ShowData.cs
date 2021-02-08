@@ -29,7 +29,7 @@ public class ShowData : MonoBehaviour
 
     public void SetTargetDatabaseTable(string tablename) {
         if (tablename == "reactiontime" || tablename == "synch" || tablename == "EDAIBISerial") {
-            webapplication = "http://create-rapps01.srv.aau.dk/reaction-synch-tests/" + "?email=" + email + "&subject=" + tablename + "&pid=" + pid;
+            webapplication = "https://rehab.shiny.create.aau.dk/ArduinoLoggerShinyApp/" + "?email=" + email + "&subject=" + tablename + "&pid=" + pid;
             // format: http://create-rapps01.srv.aau.dk/reaction-synch-tests/?email=buildwin@aau.dk&subject=synch
         } 
     }
