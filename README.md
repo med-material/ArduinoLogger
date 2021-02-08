@@ -1,4 +1,4 @@
-# Arduino Logger
+# Arduino Logger (Windows/Mac)
 ![RTII Arduino Logger](https://raw.githubusercontent.com/med-material/RTIIArduinoLogger/master/rtii-arduino-logger-image.png)
 
 The Arduino Logger logs Arduino serial output to *.csv files (buildable as a standalone application).
