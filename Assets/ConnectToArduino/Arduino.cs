@@ -185,7 +185,7 @@ public class Arduino : MonoBehaviour {
                     for (int i = 0; i < bodyData.Length; i++) {
                         string header = headers[i];
                         string sanitizedValue = new string((from c in bodyData[i] where char.IsLetterOrDigit(c) || char.IsPunctuation(c) select c).ToArray());
-                        logCollection[header].Add(sanitizedValue);
+                        logCollection[header].Add(sanitizedValue.Replace('NA','NULL'));
                     }
                     //When ever new data arrives, the scripts fires an event to any scripts that are subscribed, to let them know there is new data available (e.g. my Arduino Logger script).
                     if (NewDataEvent != null) {   //Check that someone is actually subscribed to the event
