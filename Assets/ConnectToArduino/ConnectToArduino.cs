@@ -61,6 +61,8 @@ public class ConnectToArduino : MonoBehaviour
     private EventSystem eventSystem;
 	private static SerialPort serialport;
 
+    private readonly char[] charsToRemoveFromComment = new char[] { ';', ',' };
+
     void Awake()
     {
         eventSystem = EventSystem.current;
@@ -173,7 +175,14 @@ public class ConnectToArduino : MonoBehaviour
         else
         {
             comment = CommentInputField.text;
-            Debug.Log("Commentary: " + comment);
+            Debug.Log(charsToRemoveFromComment);
+            foreach (char c in charsToRemoveFromComment)
+            {
+                if (comment.Contains(c))
+                {
+                    comment = comment.Replace(c, ' ');
+                }
+            }
         }
         if( string.IsNullOrEmpty( PIDInputField.text ))
         {
