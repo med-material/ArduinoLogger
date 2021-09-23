@@ -182,6 +182,7 @@ public class ConnectToArduino : MonoBehaviour
                     comment = comment.Replace(c, ' ');
                 }
             }
+            Debug.Log("Commentary: " + comment);
         }
         if( string.IsNullOrEmpty( PIDInputField.text ))
         {
