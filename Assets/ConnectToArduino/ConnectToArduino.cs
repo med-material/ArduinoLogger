@@ -175,7 +175,6 @@ public class ConnectToArduino : MonoBehaviour
         else
         {
             comment = CommentInputField.text;
-            Debug.Log(charsToRemoveFromComment);
             foreach (char c in charsToRemoveFromComment)
             {
                 if (comment.Contains(c))
