@@ -59,7 +59,7 @@ public class ConnectToArduino : MonoBehaviour
 
     public string comment;
     private EventSystem eventSystem;
-	private static SerialPort serialport;
+    public SerialPort serialport;
 
     private readonly char[] charsToRemoveFromComment = new char[] { ';', ',' };
 
@@ -216,23 +216,27 @@ public class ConnectToArduino : MonoBehaviour
 
     public bool OpenConnection()
     {
-		if (serialport != null)
-		{
-			if (serialport.IsOpen)
-			{
-				//Serial port is already open. We ignore it for now.
-			}
-			else
-			{
-				//Open the connection to read data
-				serialport.Open();
-				//Set time-out value before reporting error
-				serialport.ReadTimeout = 100;
-				Debug.Log("Connected to Arduino, on port: " + serialport.PortName);
-				return true;
-			}
-		}
-		return false;
+        if (serialport != null)
+        {
+            if (serialport.IsOpen)
+            {
+                //Serial port is already open. We ignore it for now.
+            }
+            else
+            {
+                serialport.ReadTimeout = 100;
+                try
+                {
+                    serialport.Open();
+                }
+                catch (IOException)
+                {
+                    return false;
+                }
+                return true;
+            }
+        }
+        return false;
     }
 
 
