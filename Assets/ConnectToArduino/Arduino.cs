@@ -37,6 +37,7 @@ using UnityEngine.UI;
 using System.Threading;
 using System.Threading.Tasks;
 using UnityEditor;
+using UnityEngine.SceneManagement;
 
 public class Arduino : MonoBehaviour {
 
@@ -60,6 +61,8 @@ public class Arduino : MonoBehaviour {
     public Text statustext;
     public Text connectiontext;
     public Button startbutton;
+    public Button returnbutton;
+    public string previousPage;
 
     /* 
     * Arduino Connection Setup
@@ -71,7 +74,7 @@ public class Arduino : MonoBehaviour {
     private int PollingRate = 100;
     private int PackagesLost = 0;
     private int readTimeouts = 0;
-    private SerialPort arduino; 
+    private SerialPort serialPort; 
     private int writeTimeouts = 0;
     private int retries = 0;
     private string outputLabel;
@@ -121,17 +124,16 @@ public class Arduino : MonoBehaviour {
     public OnLoggingStarted onLoggingInterrupted;
 
     private ConnectToArduino connectToArduino;
-    private SerialPort serialPort;
 
     private bool isLoggingStarted;
     private bool isConnected;
     private bool hasStateChanged;
+    private bool sceneLeft;
 
     // Use this for initialization
     void Start () {
         connectiontext = GameObject.Find("ConnectionText").GetComponent<Text>();
         connectToArduino = GameObject.Find("ConnectToArduino").GetComponent<ConnectToArduino>();
-        startbutton = GameObject.Find("StartButton").GetComponent<Button>();
         BaudRate = connectToArduino.sanitizedBaudRate;
         PortName = connectToArduino.sanitizedSerialPort;
         email = connectToArduino.email;
@@ -141,6 +143,7 @@ public class Arduino : MonoBehaviour {
         hasStateChanged = false;
         serialPort = connectToArduino.serialport;
         isConnected = true;
+        sceneLeft = false;
         UpdateStatus();
         _ = CheckConnectionAsync();
         //OpenPort(); //Open the serial port when the scene is loaded.
@@ -165,23 +168,28 @@ public class Arduino : MonoBehaviour {
 
     public async Task CheckConnectionAsync()
     {
-        while (true)
+        while (!sceneLeft)
         {
             _ = Task.Run(() =>
               {
                   if (!isLoggingStarted)
                   {
-                      bool wasConnected = this.isConnected;
-                      this.isConnected = DetectArduino();
-                      if((this.isConnected && !wasConnected) || (!this.isConnected && wasConnected) )
-                      {
-                          hasStateChanged = true;
-                      } 
+                      UpdateConnectionStatus();
                   }
                   
               });
-            await Task.Delay(500);
+            await Task.Delay(1000);
         }   
+    }
+
+    private void UpdateConnectionStatus()
+    {
+        bool wasConnected = this.isConnected;
+        this.isConnected = DetectArduino();
+        if ((this.isConnected && !wasConnected) || (!this.isConnected && wasConnected))
+        {
+            hasStateChanged = true;
+        }
     }
 
     private bool DetectArduino()
@@ -329,6 +337,15 @@ public class Arduino : MonoBehaviour {
 
     }
 
+    public void PreviousPage()
+    {
+        sceneLeft = true;
+        connectToArduino.CloseConnection();
+        foreach (var d in NewRawSerialEvent.GetInvocationList())
+            NewRawSerialEvent -= (d as NewRawSerialEventHandler);
+        SceneManager.LoadSceneAsync(previousPage);
+    }
+
     private void ParseDataArguments(string s) {
 		var start = s.IndexOf("(")+1;
 		var end = s.LastIndexOf(")");
@@ -372,22 +389,23 @@ public class Arduino : MonoBehaviour {
     public string rawSerialEvent = "";
     private IEnumerator ReadIncomingData()
     {
+        //while loop was never stopping with StopCoroutine() so condition added
         System.Text.ASCIIEncoding encoder = new System.Text.ASCIIEncoding();
-        while (true) //Loop until stopped by StopCoroutine()
+        while (isLoggingStarted) //Loop until stopped by StopCoroutine()
         {
             try
             {
                 //Read everything currently in the system input buffer
-                int bytesRead = arduino.Read(readBuffer, 0, readBuffer.Length);
+                int bytesRead = serialPort.Read(readBuffer, 0, readBuffer.Length);
                 //Convert the byte to ASCII (a string)
                 string serialInput = encoder.GetString(readBuffer, 0, bytesRead);
                 //Add the new data to our own input buffer
                 inputBuffer += serialInput;
                 rawSerialEvent = serialInput;
-
                 if (NewRawSerialEvent != null)   //Check that someone is actually subscribed to the event
+                {
                     NewRawSerialEvent(this);     //Fire the event in case someone is subscribed
-
+                }
                 //Find a new line flag (indicates end of a data package)
                 int endFlagPosition = inputBuffer.IndexOf('\n');
                 //If we found a flag, process it further
@@ -438,7 +456,7 @@ public class Arduino : MonoBehaviour {
     {
         Debug.Log("Trying to reopen SerialPort with name " + PortName + ". Try #" + retries);
         StopCoroutine(SerialUpdate);
-        arduino.Close();
+        serialPort.Close();
         readTimeouts = 0;
         PackagesLost = 0;
         retries++;
@@ -454,18 +472,17 @@ public class Arduino : MonoBehaviour {
 
     public void OpenPort()
     {
-        arduino = new SerialPort(PortName, BaudRate);
-        arduino.ReadTimeout = 1000;
-        arduino.WriteTimeout = 50; //Unfortunatly 
+        serialPort.ReadTimeout = 1000;
+        serialPort.WriteTimeout = 50; //Unfortunatly 
 
         // We toggle DtrEnable to reset the Arduino when we open connection it. Otherwise, we may in some cases not receive the header.
-        arduino.DtrEnable = true;
+        serialPort.DtrEnable = true;
         try
         {
-            arduino.Open();
-            System.Threading.Thread.Sleep(1000);
             isLoggingStarted = true;
-            arduino.DtrEnable = false;
+            serialPort.Open();
+            System.Threading.Thread.Sleep(1000);
+            serialPort.DtrEnable = false;
         }
         catch (System.Exception e)
         {
@@ -474,12 +491,13 @@ public class Arduino : MonoBehaviour {
             {
                 Debug.Log(portName);
             }
-            
+            isLoggingStarted = false;
+            UpdateConnectionStatus();
             return;
         }
 
 
-        if (!arduino.IsOpen)
+        if (!serialPort.IsOpen)
         {
             Debug.LogError("Couldn't open Serial Port with name " + PortName);
             gameObject.SetActive(false);
@@ -490,8 +508,8 @@ public class Arduino : MonoBehaviour {
         
         try
         {
-            byte[] buffer = new byte[arduino.ReadBufferSize];
-            arduino.Read(buffer, 0, buffer.Length);
+            byte[] buffer = new byte[serialPort.ReadBufferSize];
+            serialPort.Read(buffer, 0, buffer.Length);
         }
         catch (System.Exception)
         {
@@ -500,7 +518,7 @@ public class Arduino : MonoBehaviour {
          
 
 
-        arduino.ReadTimeout = 1; //We don't want Unity to hang in case there's no data yet. Better to timeout the reading and let Unity do other things while waiting for new data to arrive
+        serialPort.ReadTimeout = 1; //We don't want Unity to hang in case there's no data yet. Better to timeout the reading and let Unity do other things while waiting for new data to arrive
 
         SerialUpdate = ReadIncomingData();
         StartCoroutine(SerialUpdate); 
@@ -508,8 +526,9 @@ public class Arduino : MonoBehaviour {
 
     public void OnDisable()
     {
-        isLoggingStarted = false;
         StopCoroutine(ReadIncomingData());
-        arduino.Close();
+        receiverState = ReceiverState.Standby;
+        isLoggingStarted = false;
+        connectToArduino.CloseConnection();
     }
 }

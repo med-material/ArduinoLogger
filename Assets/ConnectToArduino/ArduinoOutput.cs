@@ -27,7 +27,15 @@ public class ArduinoOutput : MonoBehaviour
 
     void NewData(Arduino arduino)
     {
-            arduinoOutputField.text =(arduinoOutputField.text + "\n" + arduino.rawSerialEvent).Substring(Math.Max((arduinoOutputField.text + "\n" + arduino.rawSerialEvent).Length - 1000, 0), Math.Min((arduinoOutputField.text + "\n" + arduino.rawSerialEvent).Length, 1000));  
+        try
+        {
+            arduinoOutputField.text = (arduinoOutputField.text + "\n" + arduino.rawSerialEvent).Substring(Math.Max((arduinoOutputField.text + "\n" + arduino.rawSerialEvent).Length - 1000, 0), Math.Min((arduinoOutputField.text + "\n" + arduino.rawSerialEvent).Length, 1000));
+        }
+        catch (Exception e)
+        {
+            Debug.LogError(e.ToString());
+        }
+
     }
 
     public void ClearOutput()
@@ -41,6 +49,5 @@ public class ArduinoOutput : MonoBehaviour
     {
             Canvas.ForceUpdateCanvases();
             scrollRect.verticalNormalizedPosition = 0;
-        
     }
 }
