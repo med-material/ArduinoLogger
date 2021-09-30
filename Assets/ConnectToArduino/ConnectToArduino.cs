@@ -47,6 +47,9 @@ public class ConnectToArduino : MonoBehaviour
     [SerializeField]
     private string redirectScene;
 
+    [SerializeField]
+    private Button refreshButton;
+
     public string sanitizedSerialPort = "";
 
     public int sanitizedBaudRate = -1;
@@ -67,14 +70,7 @@ public class ConnectToArduino : MonoBehaviour
     {
         eventSystem = EventSystem.current;
         string[] ports = SerialPort.GetPortNames();
-        if (ports.Length > 0) {
-            arduinoDropdown.AddOptions(ports.ToList());
-            arduinoDropdown.AddOptions(new List<string> {"Custom.."});
-            serialPortInputField.text = arduinoDropdown.options[arduinoDropdown.value].text;
-        } else {
-            arduinoDropdown.gameObject.SetActive(false);
-            serialPortInputField.gameObject.SetActive(true);
-        }
+        DisplayAvailablePorts();
         DontDestroyOnLoad (transform.gameObject);
     }
 
@@ -103,6 +99,30 @@ public class ConnectToArduino : MonoBehaviour
                 displayArduinoError();
             }
         }
+    }
+
+    private void DisplayAvailablePorts()
+    {
+        string[] ports = SerialPort.GetPortNames();
+        if (ports.Length > 0)
+        {
+            arduinoDropdown.AddOptions(ports.ToList());
+            arduinoDropdown.AddOptions(new List<string> { "Custom.." });
+            serialPortInputField.text = arduinoDropdown.options[arduinoDropdown.value].text;
+            arduinoDropdown.gameObject.SetActive(true);
+            serialPortInputField.gameObject.SetActive(false);
+        }
+        else
+        {
+            arduinoDropdown.gameObject.SetActive(false);
+            serialPortInputField.gameObject.SetActive(true);
+        }
+    }
+
+    public void OnRefreshClick()
+    {
+        arduinoDropdown.ClearOptions();
+        DisplayAvailablePorts();
     }
 
     public void RedirectToScene() {
