@@ -153,14 +153,14 @@ public class Arduino : MonoBehaviour {
     {
         if (isConnected)
         {
-            connectiontext.text = "Arduino is connected";
-            connectiontext.color = Color.green;
+            connectiontext.text = "CONNECTED";
+            ColorUtility.TryParseHtmlString("#787878", out Color grayColor);
+            connectiontext.color = grayColor;
             startbutton.interactable = true;
-          
         }
         else
         {
-            connectiontext.text = "Arduino is disconnected";
+            connectiontext.text = "DISCONNECTED";
             connectiontext.color = Color.red;
             startbutton.interactable = false;
         }
@@ -255,9 +255,7 @@ public class Arduino : MonoBehaviour {
         } else if (receiverState == ReceiverState.ReadingData) {
             // Check for "END" strings
             if (serialInput.Contains ("LOG END")) {
-                receiverState = ReceiverState.LoggingFinished;
-                ChangeButtonOnEnd();
-                OnDisable();
+                StopLogging();
             } else {
                 // Parse data
                 var bodyData = serialInput.Split('\t');
@@ -306,6 +304,13 @@ public class Arduino : MonoBehaviour {
         //testStart = int.Parse(values[5]);
 
         //Feel free to add new variables (both here and in the Arduino script).
+    }
+
+    private void StopLogging()
+    {
+        receiverState = ReceiverState.LoggingFinished;
+        ChangeButtonOnEnd();
+        OnDisable();
     }
 
     public void publishlog()
@@ -437,8 +442,13 @@ public class Arduino : MonoBehaviour {
             }
             catch (System.Exception e)
             {
+                
                 //Catch any timeout errors (can happen if the Arduino is busy with something else)
                 readTimeouts++;
+                if(receiverState == ReceiverState.ReadingData && readTimeouts > 50)
+                {
+                    StopLogging();
+                }
 
                 //If we time out many times, then something is propably wrong with the serial port, in which case we will try to reopen it.
                 /*if (readTimeouts > 5000)
