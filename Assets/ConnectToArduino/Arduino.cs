@@ -63,6 +63,8 @@ public class Arduino : MonoBehaviour {
     public Button startbutton;
     public Button returnbutton;
     public string previousPage;
+    public Color disconnectedColor = Color.gray;
+    public Color connectedColor = Color.red;
 
     /* 
     * Arduino Connection Setup
@@ -130,6 +132,7 @@ public class Arduino : MonoBehaviour {
     private bool hasStateChanged;
     private bool sceneLeft;
 
+
     // Use this for initialization
     void Start () {
         connectiontext = GameObject.Find("ConnectionText").GetComponent<Text>();
@@ -154,14 +157,13 @@ public class Arduino : MonoBehaviour {
         if (isConnected)
         {
             connectiontext.text = "CONNECTED";
-            ColorUtility.TryParseHtmlString("#787878", out Color grayColor);
-            connectiontext.color = grayColor;
+            connectiontext.color = connectedColor;
             startbutton.interactable = true;
         }
         else
         {
             connectiontext.text = "DISCONNECTED";
-            connectiontext.color = Color.red;
+            connectiontext.color = disconnectedColor;
             startbutton.interactable = false;
         }
     }
