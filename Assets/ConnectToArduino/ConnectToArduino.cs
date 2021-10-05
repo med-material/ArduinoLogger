@@ -8,13 +8,15 @@ using System.IO.Ports;
 using System.Text.RegularExpressions;
 using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
+using System.Timers;
+
 public class ConnectToArduino : MonoBehaviour
 {
     [SerializeField]
     private Color connectedColor;
 
     [SerializeField]
-    private Color errorColor;  
+    private Color errorColor;
 
     [SerializeField]
     private Color inputfieldErrorColor;
@@ -63,6 +65,7 @@ public class ConnectToArduino : MonoBehaviour
     public string comment;
     private EventSystem eventSystem;
     public SerialPort serialport;
+    private IEnumerator refreshTimer;
 
     private readonly char[] charsToRemoveFromComment = new char[] { ';', ',' };
 
@@ -72,9 +75,19 @@ public class ConnectToArduino : MonoBehaviour
         string[] ports = SerialPort.GetPortNames();
         DisplayAvailablePorts();
         DontDestroyOnLoad (transform.gameObject);
+        refreshTimer = RefreshAvailablePorts();
+        StartCoroutine(refreshTimer);
     }
 
-    
+    IEnumerator RefreshAvailablePorts()
+    {
+        while (true)
+        {
+            yield return new WaitForSeconds(5);
+            DisplayAvailablePorts();
+        }
+    }
+
     void Update()
     {
 
@@ -101,8 +114,10 @@ public class ConnectToArduino : MonoBehaviour
         }
     }
 
+
     private void DisplayAvailablePorts()
     {
+        arduinoDropdown.ClearOptions();
         string[] ports = SerialPort.GetPortNames();
         if (ports.Length > 0)
         {
@@ -119,14 +134,18 @@ public class ConnectToArduino : MonoBehaviour
         }
     }
 
+
+
     public void OnRefreshClick()
     {
-        arduinoDropdown.ClearOptions();
         DisplayAvailablePorts();
     }
 
+
     public void RedirectToScene() {
-            SceneManager.LoadSceneAsync(redirectScene);
+        StopCoroutine(refreshTimer);
+        SceneManager.LoadSceneAsync(redirectScene);
+
     }
 
     private void displayArduinoError() {
@@ -266,7 +285,6 @@ public class ConnectToArduino : MonoBehaviour
     {
         if (serialport != null && serialport.IsOpen)
         {
-            Debug.Log("Closing connection to Arduino, on port: " + serialport.PortName);
             //If the connection is open, we close it before ending the program
             serialport.Close();
         }

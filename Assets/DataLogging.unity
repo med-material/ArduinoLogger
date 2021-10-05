@@ -1184,7 +1184,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0.00002791678, y: -0.000018702158}
+  m_AnchoredPosition: {x: -0.0000026007983, y: 0.00001181542}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0, y: 1}
 --- !u!114 &471695401
@@ -2788,6 +2788,8 @@ MonoBehaviour:
   startbutton: {fileID: 738073541}
   returnbutton: {fileID: 1614734464}
   previousPage: ConnectToArduino
+  disconnectedColor: {r: 0.9339623, g: 0.17254113, b: 0.030838395, a: 1}
+  connectedColor: {r: 0.5091939, g: 0.509434, b: 0.50222504, a: 1}
   PortName: COM5
   BaudRate: 115200
   ParseIncomingData: 1
