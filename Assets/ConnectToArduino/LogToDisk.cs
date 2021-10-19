@@ -95,21 +95,16 @@ public class LogToDisk : MonoBehaviour
 
         List<string> dataString = new List<string>();
         // Create a string with the data
-        for (int i = 0; i < logCollection["Email"].Count; i++)
+        using (StreamWriter writer = File.AppendText(filepath))
         {
-            List<string> row = new List<string>();
-            foreach (string key in logCollection.Keys)
+            for (int i = 0; i < logCollection["Email"].Count; i++)
             {
-                row.Add(logCollection[key][i]);
-            }
-            dataString.Add(string.Join(sep, row.ToArray()) + sep);
-        }
-
-        foreach (var log in dataString)
-        {
-            using (StreamWriter writer = File.AppendText(filepath))
-            {
-                writer.WriteLine(log.Replace("\n", string.Empty));
+                List<string> row = new List<string>();
+                foreach (string key in logCollection.Keys)
+                {
+                    row.Add(logCollection[key][i]);
+                }
+                writer.WriteLine((string.Join(sep, row.ToArray()) + sep).Replace("\n", string.Empty));
             }
         }
 
