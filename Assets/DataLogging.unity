@@ -1035,7 +1035,7 @@ MonoBehaviour:
   m_HandleRect: {fileID: 1505281287}
   m_Direction: 2
   m_Value: 0
-  m_Size: 1
+  m_Size: 0.99999994
   m_NumberOfSteps: 0
   m_OnValueChanged:
     m_PersistentCalls:
@@ -2576,8 +2576,8 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 870000800}
-  - component: {fileID: 870000799}
   - component: {fileID: 870000801}
+  - component: {fileID: 870000799}
   m_Layer: 0
   m_Name: ConnectToMySQL
   m_TagString: Untagged
@@ -2594,26 +2594,15 @@ MonoBehaviour:
   m_GameObject: {fileID: 870000798}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ab22e7b89d1224d5cb1ceb845cd6aead, type: 3}
+  m_Script: {fileID: 11500000, guid: d4bbecaa64c0e89469edeef1bbd98e01, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  builtInCredentials: {fileID: 4900000, guid: dbe9ef754e13dd641a7bff33b9dd6eb3, type: 3}
-  statusMessage: {fileID: 295343692}
-  errorColor: {r: 0.74509805, g: 0.11372549, b: 0.11372549, a: 1}
+  builtInCredentials: []
+  statusMessage: {fileID: 0}
+  errorColor: {r: 0, g: 0, b: 0, a: 0}
   onLogsUploaded:
     m_PersistentCalls:
-      m_Calls:
-      - m_Target: {fileID: 870000801}
-        m_MethodName: TriggerShowDataVisibility
-        m_Mode: 0
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
+      m_Calls: []
     m_TypeName: ConnectToMySQL+OnLogsUploaded, Assembly-CSharp, Version=0.0.0.0, Culture=neutral,
       PublicKeyToken=null
 --- !u!4 &870000800
@@ -2798,7 +2787,7 @@ MonoBehaviour:
   pushdata:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 870000799}
+      - m_Target: {fileID: 0}
         m_MethodName: AddToUploadQueue
         m_Mode: 0
         m_Arguments:
@@ -2809,7 +2798,7 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
-      - m_Target: {fileID: 870000799}
+      - m_Target: {fileID: 0}
         m_MethodName: UploadNow
         m_Mode: 1
         m_Arguments:
@@ -2874,7 +2863,7 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
-      - m_Target: {fileID: 870000799}
+      - m_Target: {fileID: 0}
         m_MethodName: SetDatabaseTable
         m_Mode: 0
         m_Arguments:
@@ -3143,7 +3132,7 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 1
         m_CallState: 2
-      - m_Target: {fileID: 870000799}
+      - m_Target: {fileID: 0}
         m_MethodName: resettextbutton
         m_Mode: 1
         m_Arguments:
@@ -3721,6 +3710,58 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1355084300}
   m_CullTransparentMesh: 0
+--- !u!1 &1356913265
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1356913267}
+  - component: {fileID: 1356913266}
+  m_Layer: 0
+  m_Name: LoggingManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1356913266
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1356913265}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8044bb5719035e14ab33f5a950770e12, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  CreateMetaCollection: 0
+  enableMySQLSave: 1
+  email: anonymous
+  connectToMySQL: {fileID: 870000799}
+  enableCSVSave: 1
+  logStringOverTime: 1
+  savePath: 
+  filePrefix: log
+  fileExtension: .csv
+--- !u!4 &1356913267
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1356913265}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 619.58636, y: 331.27393, z: -1.0935234}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_RootOrder: 6
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1360255774
 GameObject:
   m_ObjectHideFlags: 0

@@ -39,17 +39,19 @@ using System.Threading.Tasks;
 using UnityEditor;
 using UnityEngine.SceneManagement;
 
-public class Arduino : MonoBehaviour {
+public class Arduino : MonoBehaviour
+{
 
-    public enum ReceiverState {
+    public enum ReceiverState
+    {
         Standby,
-		ReadingHeader,
+        ReadingHeader,
         ReadingData,
-		LoggingFinished,
+        LoggingFinished,
         DatabaseSending
     }
 
-	private ReceiverState receiverState;
+    private ReceiverState receiverState;
 
     private bool save = false;
 
@@ -76,7 +78,7 @@ public class Arduino : MonoBehaviour {
     private int PollingRate = 100;
     private int PackagesLost = 0;
     private int readTimeouts = 0;
-    private SerialPort serialPort; 
+    private SerialPort serialPort;
     private int writeTimeouts = 0;
     private int retries = 0;
     private string outputLabel;
@@ -131,10 +133,17 @@ public class Arduino : MonoBehaviour {
     private bool isConnected;
     private bool hasStateChanged;
     private bool sceneLeft;
+    public LoggingManager LoggingManager { get; set; }
 
+
+    public string GetOutputLabel()
+    {
+        return outputLabel;
+    }
 
     // Use this for initialization
-    void Start () {
+    void Start()
+    {
         connectiontext = GameObject.Find("ConnectionText").GetComponent<Text>();
         connectToArduino = GameObject.Find("ConnectToArduino").GetComponent<ConnectToArduino>();
         BaudRate = connectToArduino.sanitizedBaudRate;
@@ -149,6 +158,7 @@ public class Arduino : MonoBehaviour {
         sceneLeft = false;
         UpdateStatus();
         _ = CheckConnectionAsync();
+        LoggingManager = GameObject.Find("LoggingManager").GetComponent<LoggingManager>();
         //OpenPort(); //Open the serial port when the scene is loaded.
     }
 
@@ -173,15 +183,15 @@ public class Arduino : MonoBehaviour {
         while (!sceneLeft)
         {
             _ = Task.Run(() =>
-              {
-                  if (!isLoggingStarted)
-                  {
-                      UpdateConnectionStatus();
-                  }
-                  
-              });
+            {
+                if (!isLoggingStarted)
+                {
+                    UpdateConnectionStatus();
+                }
+
+            });
             await Task.Delay(1000);
-        }   
+        }
     }
 
     private void UpdateConnectionStatus()
@@ -210,85 +220,106 @@ public class Arduino : MonoBehaviour {
             UpdateStatus();
             hasStateChanged = false;
         }
-        
+
     }
 
- 
+
     //Process the data we get from our Arduino (this function might be called more often than Update(), depending on the chosen polling rate)
-    private void ProcessInputFromArduino(string serialInput) {
-        if (!ParseIncomingData) {
+    private void ProcessInputFromArduino(string serialInput)
+    {
+        if (!ParseIncomingData)
+        {
             return;
         }
         // Read what is our current state
-        if (receiverState == ReceiverState.Standby) {
+        if (receiverState == ReceiverState.Standby)
+        {
             // Check for "BEGIN" string.
-            if (serialInput.Contains ("LOG BEGIN")) {
+            if (serialInput.Contains("LOG BEGIN"))
+            {
                 // Parse Reported Column and Separator
                 ParseDataArguments(serialInput);
                 onLoggingStarted.Invoke(outputLabel);
-                // Initialize the log dictionary
-                logCollection = new Dictionary<string, List<string>>();
-                Debug.Log("logcollection is created");
-
-                receiverState = ReceiverState.ReadingHeader;					
+                receiverState = ReceiverState.ReadingHeader;
             }
-        } else if (receiverState == ReceiverState.ReadingHeader) {
+        }
+        else if (receiverState == ReceiverState.ReadingHeader)
+        {
             // Parse header
             timestamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.ffff");
-            headers = new List<string>();				
+            //List<string> headersList = new List<string>();
             headers = serialInput.Split('\t').ToList();
             if (NewHeaderEvent != null)   //Check that someone is actually subscribed to the event
                 NewHeaderEvent(headers);     //Fire the event in case someone is subscribed  
-            logCollection.Add("TimeStamp", new List<string>());          
-            logCollection.Add("Email", new List<string>());
-            logCollection.Add("Comment", new List<string>());
-            logCollection.Add("PID", new List<string>());
             // Check that header contains the expected number of columns. 
-            if (headers.Count == numberOfColumns) {
-                foreach (var header in headers) {
-                    logCollection.Add(header, new List<string>());
-                }
+            if (headers.Count == numberOfColumns)
+            {
+                //foreach (var header in headers) {
+                //    headersList.Add(header);
+                //}
+                LoggingManager.DeleteAllLogs();
+                LoggingManager.SetEmail(email);
+                LoggingManager.CreateLog(outputLabel);
+                //LoggingManager.TerminateLogRow("Meta");
                 receiverState = ReceiverState.ReadingData;
-            } else {
+            }
+            else
+            {
                 // Otherwise error out and go to Standby Mode.
                 Debug.LogError("Received " + headers.Count + "columns, but Arduino reported " + numberOfColumns + "! Data Discarded..");
                 receiverState = ReceiverState.Standby;
             }
-        } else if (receiverState == ReceiverState.ReadingData) {
+        }
+        else if (receiverState == ReceiverState.ReadingData)
+        {
             // Check for "END" strings
-            if (serialInput.Contains ("LOG END")) {
+            if (serialInput.Contains("LOG END"))
+            {
                 StopLogging();
-            } else {
+            }
+            else
+            {
                 // Parse data
                 var bodyData = serialInput.Split('\t');
 
                 // Check that bodyData contains the expected number of columns. 
-                if (bodyData.Length == numberOfColumns) {
-                    logCollection["TimeStamp"].Add(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.ffff"));
-                    logCollection["Email"].Add(email);
-                    logCollection["Comment"].Add(Comment);
-                    logCollection["PID"].Add(pid);
-                    for (int i = 0; i < bodyData.Length; i++) {
+                if (bodyData.Length == numberOfColumns)
+                {
+                    Dictionary<string, object> currentLogs = new Dictionary<string, object>();
+
+                    currentLogs.Add("Comment", Comment);
+                    currentLogs.Add("PID", pid);
+
+                    for (int i = 0; i < bodyData.Length; i++)
+                    {
                         string header = headers[i];
+                        header = header.Replace("\n", "");
+                        header = header.Replace("\r", "");
                         string sanitizedValue = new string((from c in bodyData[i] where char.IsLetterOrDigit(c) || char.IsPunctuation(c) select c).ToArray());
-                        if (sanitizedValue == "NA") {
+                        if (sanitizedValue == "NA")
+                        {
                             sanitizedValue = "NULL";
                         }
-                        logCollection[header].Add(sanitizedValue);
+                        currentLogs.Add(header, sanitizedValue);
                     }
+                    LoggingManager.Log(outputLabel, currentLogs);
+                    // LoggingManager.TerminateLogRow(outputLabel);
                     //When ever new data arrives, the scripts fires an event to any scripts that are subscribed, to let them know there is new data available (e.g. my Arduino Logger script).
-                    if (NewDataEvent != null) {   //Check that someone is actually subscribed to the event
+                    if (NewDataEvent != null)
+                    {   //Check that someone is actually subscribed to the event
                         NewDataEvent(logCollection);     //Fire the event in case someone is subscribed
                     }
-                } else {
+                }
+                else
+                {
                     // Otherwise error out and go to Standby Mode.
                     Debug.LogError("Received " + bodyData.Length + "columns, but Arduino reported " + numberOfColumns + "! Data Discarded..");
                     receiverState = ReceiverState.Standby;
                 }
             }
         }
-        
-      /*  */
+
+        /*  */
 
         // ----- INPUT FROM ARDUINO TO UNITY ----- //
         //From here you can do what ever you want with the data.
@@ -319,19 +350,21 @@ public class Arduino : MonoBehaviour {
     {
         receiverState = ReceiverState.DatabaseSending;
         Debug.Log("state : sending");
+        LoggingManager.SaveAllLogs(true, TargetType.MySql);
         pushdata.Invoke(logCollection);
         // Reset receiverState to Standby.
         receiverState = ReceiverState.Standby;
     }
 
-    public void ChangeButtonOnEnd(){
+    public void ChangeButtonOnEnd()
+    {
 
         savebutton.SetActive(true);
         publishbutton.SetActive(true);
         stopbutton.SetActive(false);
         subtext.SetActive(true);
         restartbutton.SetActive(true);
-        statustext.text="Arduino logging Has Finished.";
+        statustext.text = "Arduino logging Has Finished.";
     }
 
     public void changefinishstate()
@@ -354,39 +387,51 @@ public class Arduino : MonoBehaviour {
         SceneManager.LoadSceneAsync(previousPage);
     }
 
-    private void ParseDataArguments(string s) {
-		var start = s.IndexOf("(")+1;
-		var end = s.LastIndexOf(")");
-		string[] dataArgs = s.Substring(start, end - start).Split(',');
+    private void ParseDataArguments(string s)
+    {
+        var start = s.IndexOf("(") + 1;
+        var end = s.LastIndexOf(")");
+        string[] dataArgs = s.Substring(start, end - start).Split(',');
 
-		foreach (var arg in dataArgs) {
-			string[] valPair = arg.Split('=');
+        foreach (var arg in dataArgs)
+        {
+            string[] valPair = arg.Split('=');
 
-			var param = new string((from c in valPair[0] where char.IsLetterOrDigit(c) || char.IsPunctuation(c) select c).ToArray());
-			var val = new string((from c in valPair[1] where char.IsLetterOrDigit(c) || char.IsPunctuation(c) select c).ToArray());
+            var param = new string((from c in valPair[0] where char.IsLetterOrDigit(c) || char.IsPunctuation(c) select c).ToArray());
+            var val = new string((from c in valPair[1] where char.IsLetterOrDigit(c) || char.IsPunctuation(c) select c).ToArray());
 
-			if (param == "sep") {
-					if (val == "tab") {
-						separator = "\t";
-					} else if (val == "comma") {
-						separator = ",";
-					} else {
-						Debug.LogError("Could not parse separator argument: " + val + " - use LOG BEGIN (sep=comma) or (sep=tab).");
-					}
-			} else if (param == "col") {
-					var result = int.TryParse(val, out numberOfColumns);
-					if (!result) {
-						Debug.LogError("Could not parse column length argument: " + val + " - use fx LOG BEGIN (col=5).");
-					}
-                    } 
-                    else if (param == "label") 
-                    { 
-					    outputLabel = val;
-			        } 
-                    else {
-				Debug.LogWarning("Arduino reported an unknown parameter: " + param);
-			}
-		}
+            if (param == "sep")
+            {
+                if (val == "tab")
+                {
+                    separator = "\t";
+                }
+                else if (val == "comma")
+                {
+                    separator = ",";
+                }
+                else
+                {
+                    Debug.LogError("Could not parse separator argument: " + val + " - use LOG BEGIN (sep=comma) or (sep=tab).");
+                }
+            }
+            else if (param == "col")
+            {
+                var result = int.TryParse(val, out numberOfColumns);
+                if (!result)
+                {
+                    Debug.LogError("Could not parse column length argument: " + val + " - use fx LOG BEGIN (col=5).");
+                }
+            }
+            else if (param == "label")
+            {
+                outputLabel = val;
+            }
+            else
+            {
+                Debug.LogWarning("Arduino reported an unknown parameter: " + param);
+            }
+        }
     }
 
     // ----- SERIAL COMMUNICATION ----- //
@@ -444,10 +489,10 @@ public class Arduino : MonoBehaviour {
             }
             catch (System.Exception e)
             {
-                
+
                 //Catch any timeout errors (can happen if the Arduino is busy with something else)
                 readTimeouts++;
-                if(receiverState == ReceiverState.ReadingData && readTimeouts > 50)
+                if (receiverState == ReceiverState.ReadingData && readTimeouts > 50)
                 {
                     StopLogging();
                 }
@@ -479,8 +524,8 @@ public class Arduino : MonoBehaviour {
             gameObject.SetActive(false);
             return;
         }
-        Invoke("OpenPort",5f);
-        
+        Invoke("OpenPort", 5f);
+
     }
 
     public void OpenPort()
@@ -519,7 +564,7 @@ public class Arduino : MonoBehaviour {
         }
 
         //Clear any data in the buffer (the C# methods made for this in the Serial class are not implemented in this version of Mono)
-        
+
         try
         {
             byte[] buffer = new byte[serialPort.ReadBufferSize];
@@ -529,13 +574,13 @@ public class Arduino : MonoBehaviour {
         {
             // ignored
         }
-         
+
 
 
         serialPort.ReadTimeout = 1; //We don't want Unity to hang in case there's no data yet. Better to timeout the reading and let Unity do other things while waiting for new data to arrive
 
         SerialUpdate = ReadIncomingData();
-        StartCoroutine(SerialUpdate); 
+        StartCoroutine(SerialUpdate);
     }
 
     public void OnDisable()
