@@ -3,30 +3,21 @@ using System.Collections.Generic;
 using UnityEngine;
 using System.IO;
 using System;
-using System.Linq;
 using System.Globalization;
+using System.Linq;
+using System.Threading;
 
-public enum LogMode
-{
-    Append,
-    Overwrite
-}
 
-public class LogCollection
+public enum TargetType
 {
-    public string label;
-    public int count = 0;
-    public bool saveHeaders = true;
-    public Dictionary<string, Dictionary<int, object>> log = new Dictionary<string, Dictionary<int, object>>();
+    MySql,
+    CSV
 }
 
 public class LoggingManager : MonoBehaviour
 {
-    private Dictionary<string, string> statelogs = new Dictionary<string, string>();
-    private Dictionary<string, Dictionary<int, string>> logs = new Dictionary<string, Dictionary<int, string>>();
-
     // sampleLog[COLUMN NAME][COLUMN NO.] = [OBJECT] (fx a float, int, string, bool)
-    private Dictionary<string, LogCollection> collections = new Dictionary<string, LogCollection>();
+    private Dictionary<string, LogStore> logsList = new Dictionary<string, LogStore>();
 
     [Header("Logging Settings")]
     [Tooltip("The Meta Collection will contain a session ID, a device ID and a timestamp.")]
@@ -47,6 +38,13 @@ public class LoggingManager : MonoBehaviour
     [SerializeField]
     private bool enableCSVSave = true;
 
+    [Header("Logging mode")]
+    [Tooltip("If set to true, the logging process will be done over time, resulting in faster saving time.\n" +
+             "If set to false, the logging process will use less ressources, but the logs will take more time to be saved")]
+    [SerializeField]
+    private bool logStringOverTime = true;
+
+
     [Tooltip("If save path is empty, it defaults to My Documents.")]
     [SerializeField]
     private string savePath = "";
@@ -63,68 +61,57 @@ public class LoggingManager : MonoBehaviour
     private string deviceID = "";
     private string filestamp;
 
+    private List<TargetType> targetsEnabled;
+    private Dictionary<string, Dictionary<TargetType, bool>> originsSavedPerLog;
+
     // Start is called before the first frame update
     void Awake()
     {
-        CultureInfo.DefaultThreadCurrentCulture = CultureInfo.InvariantCulture;
+        targetsEnabled = new List<TargetType>();
+        //Initializes the list of activated targets
+        if (enableCSVSave)
+        {
+            targetsEnabled.Add(TargetType.CSV);
+        }
+        if (enableMySQLSave)
+        {
+            targetsEnabled.Add(TargetType.MySql);
+        }
+
         NewFilestamp();
+        CultureInfo.DefaultThreadCurrentCulture = CultureInfo.InvariantCulture;
         if (savePath == "")
         {
             savePath = System.Environment.GetFolderPath(System.Environment.SpecialFolder.MyDocuments);
         }
     }
 
-    public void GenerateUIDs()
-    {
-        sessionID = Md5Sum(System.DateTime.Now.ToString(SystemInfo.deviceUniqueIdentifier + "yyyy:MM:dd:HH:mm:ss.ffff").Replace(" ", "").Replace("/", "").Replace(":", ""));
-        deviceID = SystemInfo.deviceUniqueIdentifier;
-    }
-
-    public Dictionary<string, Dictionary<int, object>> GetLog(string collectionLabel)
-    {
-        return new Dictionary<string, Dictionary<int, object>>(collections[collectionLabel].log);
-    }
-
-    public void SaveAllLogs()
-    {
-        foreach (KeyValuePair<string, LogCollection> pair in collections)
-        {
-            SaveLog(pair.Value.label);
-        }
-    }
 
     public void NewFilestamp()
     {
-        filestamp = GetTimeStamp().Replace('/', '-').Replace(":", "-");
-
-        if (CreateMetaCollection)
-        {
-            GenerateUIDs();
-            Log("Meta", "SessionID", sessionID, LogMode.Overwrite);
-            Log("Meta", "DeviceID", deviceID, LogMode.Overwrite);
-        }
-
-        foreach (KeyValuePair<string, LogCollection> pair in collections)
-        {
-            pair.Value.saveHeaders = true;
-        }
+        sessionID = Guid.NewGuid().ToString();
     }
 
-    public void SaveLog(string collectionLabel)
+    public void SetSavePath(string path)
     {
-        if (collections.ContainsKey(collectionLabel))
-        {
-            if (Application.platform != RuntimePlatform.WebGLPlayer)
-            {
-                SaveToCSV(collectionLabel);
-            }
-            SaveToSQL(collectionLabel);
-        }
-        else
-        {
-            Debug.LogError("No Collection Called " + collectionLabel);
-        }
+        this.savePath = path;
     }
+
+    private void GenerateLogString(string collectionLabel, Action callback)
+    {
+        var context = System.Threading.SynchronizationContext.Current;
+        new Thread(() =>
+        {
+            logsList[collectionLabel].ExportAll<string>();
+            //runs the callback in the main Thread
+            context.Post(_ =>
+            {
+                callback();
+            }, null);
+
+        }).Start();
+    }
+
 
     public void SetEmail(string newEmail)
     {
@@ -133,270 +120,279 @@ public class LoggingManager : MonoBehaviour
 
     public void CreateLog(string collectionLabel)
     {
-        collections.Add(collectionLabel, new LogCollection());
+        if (logsList.ContainsKey(collectionLabel))
+        {
+            Debug.LogWarning(collectionLabel + " already exists");
+            return;
+        }
+        if (CreateMetaCollection)
+        {
+            AddMetaCollectionToList();
+        }
+        LogStore logStore = new LogStore(collectionLabel, email, sessionID, logStringOverTime);
+        logsList.Add(collectionLabel, logStore);
     }
 
-    public void Log(string collectionLabel, Dictionary<string, object> logData, LogMode logMode = LogMode.Append)
+
+    public void Log(string collectionLabel, Dictionary<string, object> logData)
     {
-        if (!collections.ContainsKey(collectionLabel))
+        //checks if the log was created and creates it if not
+        if (logsList.TryGetValue(collectionLabel, out LogStore logStore))
         {
-            collections.Add(collectionLabel, new LogCollection());
-            collections[collectionLabel].label = collectionLabel;
+            AddToLogstore(logStore, logData);
         }
+        //this will be executed only once if the log has not been created.
+        else
+        {
+            if (CreateMetaCollection)
+            {
+                //if the log added is the Meta one and doesn't exists, we create it
+                if (AddMetaCollectionToList() && collectionLabel == "Meta")
+                {
+                    AddToLogstore(logsList["Meta"], logData);
+                    return;
+                }
+            }
+
+            LogStore newLogStore = new LogStore(collectionLabel, email, sessionID, logStringOverTime);
+            AddToLogstore(newLogStore, logData);
+            logsList.Add(collectionLabel, newLogStore);
+        }
+    }
+
+    private void AddToLogstore(LogStore logStore, Dictionary<string, object> logData)
+    {
         foreach (KeyValuePair<string, object> pair in logData)
         {
-            if (!collections[collectionLabel].log.ContainsKey(pair.Key))
-            {
-                collections[collectionLabel].log.Add(pair.Key, new Dictionary<int, object>());
-
-                if (!collections[collectionLabel].log.ContainsKey("Timestamp"))
-                {
-                    collections[collectionLabel].log["Timestamp"] = new Dictionary<int, object>();
-                }
-                if (!collections[collectionLabel].log.ContainsKey("Framecount"))
-                {
-                    collections[collectionLabel].log["Framecount"] = new Dictionary<int, object>();
-                }
-                if (!collections[collectionLabel].log.ContainsKey("SessionID"))
-                {
-                    collections[collectionLabel].log["SessionID"] = new Dictionary<int, object>();
-                }
-                if (!collections[collectionLabel].log.ContainsKey("Email"))
-                {
-                    collections[collectionLabel].log["Email"] = new Dictionary<int, object>();
-                }
-            }
-            int count = collections[collectionLabel].count;
-            if (logMode == LogMode.Append)
-            {
-                if (collections[collectionLabel].log[pair.Key].ContainsKey(count))
-                {
-                    collections[collectionLabel].count++;
-                    count = collections[collectionLabel].count;
-                }
-            }
-
-            collections[collectionLabel].log["Timestamp"][count] = GetTimeStamp();
-            collections[collectionLabel].log["Framecount"][count] = GetFrameCount();
-            collections[collectionLabel].log["SessionID"][count] = sessionID;
-            collections[collectionLabel].log["Email"][count] = email;
-            collections[collectionLabel].log[pair.Key][count] = pair.Value;
+            logStore.Add(pair.Key, pair.Value);
+        }
+        if (logStore.LogType == LogType.LogEachRow)
+        {
+            logStore.EndRow();
         }
     }
 
-    public void Log(string collectionLabel, string columnLabel, object value, LogMode logMode = LogMode.Append)
+    public void Log(string collectionLabel, string columnLabel, object value)
     {
-        if (!collections.ContainsKey(collectionLabel))
+        //checks if the log was created and creates it if not
+        if (logsList.TryGetValue(collectionLabel, out LogStore logStore))
         {
-            collections.Add(collectionLabel, new LogCollection());
-            collections[collectionLabel].label = collectionLabel;
+            AddToLogstore(logStore, columnLabel, value);
         }
-
-        if (!collections[collectionLabel].log.ContainsKey(columnLabel))
+        //this will be executed only once if the log has not been created.
+        else
         {
-            collections[collectionLabel].log.Add(columnLabel, new Dictionary<int, object>());
+            if (CreateMetaCollection)
+            {
+                //if the log added is the Meta one and doesn't exists, we create it
+                if (AddMetaCollectionToList() && collectionLabel == "Meta")
+                {
+                    AddToLogstore(logsList["Meta"], columnLabel, value);
+                    return;
+                }
+            }
 
-            if (!collections[collectionLabel].log.ContainsKey("Timestamp"))
-            {
-                collections[collectionLabel].log["Timestamp"] = new Dictionary<int, object>();
-            }
-            if (!collections[collectionLabel].log.ContainsKey("Framecount"))
-            {
-                collections[collectionLabel].log["Framecount"] = new Dictionary<int, object>();
-            }
-            if (!collections[collectionLabel].log.ContainsKey("SessionID"))
-            {
-                collections[collectionLabel].log["SessionID"] = new Dictionary<int, object>();
-            }
-            if (!collections[collectionLabel].log.ContainsKey("Email"))
-            {
-                collections[collectionLabel].log["Email"] = new Dictionary<int, object>();
-            }
+            LogStore newLogStore = new LogStore(collectionLabel, email, sessionID, logStringOverTime);
+            logsList.Add(collectionLabel, newLogStore);
+            AddToLogstore(newLogStore, columnLabel, value);
         }
-
-        int count = collections[collectionLabel].count;
-        if (logMode == LogMode.Append)
-        {
-            if (collections[collectionLabel].log[columnLabel].ContainsKey(count))
-            {
-                collections[collectionLabel].count++;
-                count = collections[collectionLabel].count;
-            }
-        }
-
-        collections[collectionLabel].log["Timestamp"][count] = GetTimeStamp();
-        collections[collectionLabel].log["Framecount"][count] = GetFrameCount();
-        collections[collectionLabel].log["SessionID"][count] = sessionID;
-        collections[collectionLabel].log["Email"][count] = email;
-        collections[collectionLabel].log[columnLabel][count] = value;
     }
+
+    private void AddToLogstore(LogStore logStore, string columnLabel, object value)
+    {
+        logStore.Add(columnLabel, value);
+        if (logStore.LogType == LogType.LogEachRow)
+        {
+            logStore.EndRow();
+        }
+    }
+
+    //returns true if the Meta log was created
+    private bool AddMetaCollectionToList()
+    {
+        if (logsList.ContainsKey("Meta"))
+        {
+            return false;
+        }
+        LogStore metaLog = new LogStore("Meta", email, sessionID, logStringOverTime, LogType.OneRowOverwrite);
+        logsList.Add("Meta", metaLog);
+        metaLog.Add("SessionID", sessionID);
+        metaLog.Add("DeviceID", deviceID);
+        return true;
+    }
+
+
 
     public void ClearAllLogs()
     {
-        foreach (KeyValuePair<string, LogCollection> pair in collections)
+        foreach (KeyValuePair<string, LogStore> pair in logsList)
         {
-            foreach (var key in collections[pair.Key].log.Keys.ToList())
-            {
-                collections[pair.Key].log[key] = new Dictionary<int, object>();
-            }
-            collections[pair.Key].count = 0;
+            pair.Value.Clear();
         }
     }
 
     public void ClearLog(string collectionLabel)
     {
-        if (collections.ContainsKey(collectionLabel))
+        if (logsList.ContainsKey(collectionLabel))
         {
-            foreach (var key in collections[collectionLabel].log.Keys.ToList())
-            {
-                collections[collectionLabel].log[key] = new Dictionary<int, object>();
-            }
-            collections[collectionLabel].count = 0;
+            logsList[collectionLabel].Clear();
         }
         else
         {
             Debug.LogError("Collection " + collectionLabel + " does not exist.");
+        }
+    }
+
+    public void DeleteLog(string collectionLabel)
+    {
+        if (logsList.ContainsKey(collectionLabel))
+        {
+            logsList.Remove(collectionLabel);
+        }
+        else
+        {
+            Debug.LogError("Collection " + collectionLabel + " does not exist.");
+        }
+    }
+
+
+    public void DeleteAllLogs()
+    {
+        foreach (var keyValuePair in logsList)
+        {
+            logsList.Remove(keyValuePair.Key);
+        }
+    }
+
+    public void SaveLog(string collectionLabel, bool shouldClear)
+    {
+        if (logsList.ContainsKey(collectionLabel))
+        {
+            //we generate the string and then we save the logs in the callback
+            //by doing this, we are sure that the logs will be exported only once
+            GenerateLogString(collectionLabel, () =>
+            {
+                Save(collectionLabel, shouldClear, TargetType.CSV);
+                Save(collectionLabel, shouldClear, TargetType.MySql);
+            });
+        }
+        else
+        {
+            Debug.LogError("No Collection Called " + collectionLabel);
+        }
+    }
+
+    public void SaveLog(string collectionLabel, bool shouldClear, TargetType targetType)
+    {
+        if (logsList.ContainsKey(collectionLabel))
+        {
+            //we generate the string and then we save the logs in the callback
+            //by doing this, we are sure that the logs will be exported only once
+            GenerateLogString(collectionLabel, () =>
+            {
+                Save(collectionLabel, shouldClear, targetType);
+            });
+        }
+        else
+        {
+            Debug.LogError("No Collection Called " + collectionLabel);
+        }
+    }
+
+    private void Save(string collectionLabel, bool shouldClear, TargetType targetType)
+    {
+        if (targetType == TargetType.CSV)
+        {
+            if (Application.platform != RuntimePlatform.WebGLPlayer)
+            {
+                SaveToCSV(collectionLabel, shouldClear);
+            }
             return;
         }
+        if (targetType == TargetType.MySql)
+        {
+            SaveToSQL(collectionLabel, shouldClear);
+        }
+    }
+
+
+    public void SaveAllLogs(bool shouldClear)
+    {
+        foreach (KeyValuePair<string, LogStore> pair in logsList)
+        {
+            SaveLog(pair.Key, shouldClear);
+        }
+    }
+
+    public void SaveAllLogs(bool shouldClear,TargetType targetType)
+    {
+        foreach (KeyValuePair<string, LogStore> pair in logsList)
+        {
+            SaveLog(pair.Key, shouldClear,targetType);
+        }
+    }
+
+    private void SaveCallback(LogStore logStore, bool shouldClear)
+    {
+        if (!shouldClear) return;
+
+        //checks if all the targets have been saved, if not returns
+        foreach (var targetType in targetsEnabled)
+        {
+            if (!logStore.TargetsSaved[targetType])
+            {
+                return;
+            }
+        }
+        //All targets have been saved, we can clear the logs
+        logStore.Clear();
+        logStore.ResetTargetsSaved();
     }
 
     // Formats the logs to a CSV row format and saves them. Calls the CSV headers generation beforehand.
     // If a parameter doesn't have a value for a given row, uses the given value given previously (see 
     // UpdateHeadersAndDefaults).
-    private void SaveToCSV(string label)
+    private void SaveToCSV(string label, bool shouldClear)
     {
         if (!enableCSVSave) return;
-        string headerLine = "";
-        if (collections[label].saveHeaders)
+        if (logsList.TryGetValue(label, out LogStore logStore))
         {
-            headerLine = GenerateHeaders(collections[label]);
+            WriteToCSV writeToCsv = new WriteToCSV(logStore, savePath, filePrefix, fileExtension);
+            writeToCsv.WriteAll(() =>
+            {
+                logStore.TargetsSaved[TargetType.CSV] = true;
+                SaveCallback(logStore, shouldClear);
+            });
         }
-        object temp;
-        string filename = collections[label].label;
-        string filePath = savePath + "/" + filePrefix + filestamp + filename + fileExtension;
-        using (var file = new StreamWriter(filePath, true))
+        else
         {
-            if (collections[label].saveHeaders)
-            {
-                file.WriteLine(headerLine);
-                collections[label].saveHeaders = false;
-            }
-            for (int i = 0; i <= collections[label].count; i++)
-            {
-                string line = "";
-                foreach (KeyValuePair<string, Dictionary<int, object>> log in collections[label].log)
-                {
-                    if (line != "")
-                    {
-                        line += fieldSeperator;
-                    }
-
-                    if (log.Value.TryGetValue(i, out temp))
-                    {
-                        line += ConvertToString(temp);
-                    }
-                    else
-                    {
-                        line += "NULL";
-                    }
-                }
-                file.WriteLine(line);
-            }
+            Debug.LogWarning("Trying to save to CSV " + label + " collection but it doesn't exist.");
         }
-        Debug.Log(label + " logs with " + collections[label].count + 1 + " rows saved to " + savePath);
     }
 
-
-    // Generates the headers in a CSV format and saves them to the CSV file
-    private string GenerateHeaders(LogCollection collection)
-    {
-        string headers = "";
-        foreach (string key in collection.log.Keys)
-        {
-            if (headers != "")
-            {
-                headers += fieldSeperator;
-            }
-            headers += key;
-        }
-        return headers;
-    }
-
-    private void SaveToSQL(string label)
+    private void SaveToSQL(string label, bool shouldClear)
     {
         if (!enableMySQLSave) { return; }
 
-        if (!collections.ContainsKey(label))
+        if (!logsList.ContainsKey(label))
         {
             Debug.LogError("Could not find collection " + label + ". Aborting.");
             return;
         }
 
-        if (collections[label].log.Keys.Count == 0)
+        if (logsList[label].RowCount == 0)
         {
             Debug.LogError("Collection " + label + " is empty. Aborting.");
             return;
         }
 
-        connectToMySQL.AddToUploadQueue(collections[label].log, collections[label].label);
-        connectToMySQL.UploadNow();
+        connectToMySQL.AddToUploadQueue(logsList[label], label);
+        connectToMySQL.UploadNow(() =>
+        {
+            logsList[label].TargetsSaved[TargetType.MySql] = true;
+            SaveCallback(logsList[label], shouldClear);
+        });
     }
 
-    public string Md5Sum(string strToEncrypt)
-    {
-        System.Text.UTF8Encoding ue = new System.Text.UTF8Encoding();
-        byte[] bytes = ue.GetBytes(strToEncrypt);
-
-        // encrypt bytes
-        System.Security.Cryptography.MD5CryptoServiceProvider md5 = new System.Security.Cryptography.MD5CryptoServiceProvider();
-        byte[] hashBytes = md5.ComputeHash(bytes);
-
-        // Convert the encrypted bytes back to a string (base 16)
-        string hashString = "";
-
-        for (int i = 0; i < hashBytes.Length; i++)
-        {
-            hashString += System.Convert.ToString(hashBytes[i], 16).PadLeft(2, '0');
-        }
-
-        return hashString.PadLeft(32, '0');
-    }
-
-    // Converts the values of the parameters (in a "object format") to a string, formatting them to the
-    // correct format in the process.
-    private string ConvertToString(object arg)
-    {
-        if (arg is float)
-        {
-            return ((float)arg).ToString("0.0000").Replace(",", ".");
-        }
-        else if (arg is int)
-        {
-            return arg.ToString();
-        }
-        else if (arg is bool)
-        {
-            return ((bool)arg) ? "TRUE" : "FALSE";
-        }
-        else if (arg is Vector3)
-        {
-            return ((Vector3)arg).ToString("0.0000").Replace(",", ".");
-        }
-        else
-        {
-            return arg.ToString();
-        }
-    }
-
-    // Returns a time stamp including the milliseconds.
-    private string GetTimeStamp()
-    {
-        return System.DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.ffff");
-    }
-
-    private string GetFrameCount()
-    {
-        return Time.frameCount == null ? "-1" : Time.frameCount.ToString();
-    }
 
 }
