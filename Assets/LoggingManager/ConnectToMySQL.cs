@@ -9,18 +9,21 @@ using System.Text;
 using System.Linq;
 using UnityEngine.UI;
 
-public enum LogUploadStatus {
-    Success,
-    Error,
+public enum LogUploadStatus
+{
+	Success,
+	Error,
 }
 
-public class LogUploadResult {
+public class LogUploadResult
+{
 	public LogUploadStatus status;
 	public string error;
 }
 
 [System.Serializable]
-public class TargetCredentials {
+public class TargetCredentials
+{
 	public string label;
 	public string dbName;
 	public string table;
@@ -29,17 +32,20 @@ public class TargetCredentials {
 	public string dbURL;
 	public string dbSecKey;
 
-	public static TargetCredentials CreateFromJSON(string jsonString) {
+	public static TargetCredentials CreateFromJSON(string jsonString)
+	{
 		return JsonUtility.FromJson<TargetCredentials>(jsonString);
 	}
 
-	public string SaveToString() {
+	public string SaveToString()
+	{
 		return JsonUtility.ToJson(this);
 	}
 }
 
 [System.Serializable]
-public class DumpedForm {
+public class DumpedForm
+{
 
 	public string dbName;
 	public string table;
@@ -51,22 +57,26 @@ public class DumpedForm {
 	public string dbCols;
 	public string dataString;
 
-	public static DumpedForm CreateFromJSON(string jsonString) {
+	public static DumpedForm CreateFromJSON(string jsonString)
+	{
 		return JsonUtility.FromJson<DumpedForm>(jsonString);
 	}
 
-	public string SaveToString() {
+	public string SaveToString()
+	{
 		return JsonUtility.ToJson(this);
 	}
 
 }
 
-public class DataTarget {
+public class DataTarget
+{
 	public TargetCredentials credentials = new TargetCredentials();
-	public List<Dictionary<string, Dictionary<int, object>>> logsToUpload = new List<Dictionary<string, Dictionary<int, object>>>();
+	public List<LogStore> logstoreToUpload = new List<LogStore>();
 }
 
-public class ConnectToMySQL : MonoBehaviour {
+public class ConnectToMySQL : MonoBehaviour
+{
 	private Dictionary<string, DataTarget> dataTargets = new Dictionary<string, DataTarget>();
 	private List<DumpedForm> dumpedforms = new List<DumpedForm>();
 
@@ -77,7 +87,7 @@ public class ConnectToMySQL : MonoBehaviour {
 	private static bool isConnected = false;
 	private int retries = 0;
 	private string secHash;
-    private string dataHash;
+	private string dataHash;
 	private string colsHash;
 
 	private StreamWriter writer;
@@ -119,11 +129,13 @@ public class ConnectToMySQL : MonoBehaviour {
 	private GameObject eventSystem;
 
 	[Serializable]
-    public class OnLogsUploaded : UnityEvent<LogUploadResult> { }
-    public OnLogsUploaded onLogsUploaded;
+	public class OnLogsUploaded : UnityEvent<LogUploadResult> { }
+	public OnLogsUploaded onLogsUploaded;
 
-	void Awake() {
-		if (statusMessage != null) {
+	void Awake()
+	{
+		if (statusMessage != null)
+		{
 			defaultColor = statusMessage.color;
 		}
 		//credentials = new Dictionary<string, string>();
@@ -132,128 +144,140 @@ public class ConnectToMySQL : MonoBehaviour {
 		directory = Application.persistentDataPath + "/Data/";
 		string authDirectory = Application.persistentDataPath + "/Auth/";
 
-		if(!Directory.Exists(directory)) {
+		if (!Directory.Exists(directory))
+		{
 			Directory.CreateDirectory(directory);
 		}
 
-		if(!Directory.Exists(authDirectory)) {
+		if (!Directory.Exists(authDirectory))
+		{
 			Directory.CreateDirectory(authDirectory);
 		}
-		if (builtInCredentials == null || builtInCredentials.Length == 0)  {
-			if (Application.platform != RuntimePlatform.WebGLPlayer) {
+		if (builtInCredentials == null || builtInCredentials.Length == 0)
+		{
+			if (Application.platform != RuntimePlatform.WebGLPlayer)
+			{
 				DetectCredentialsOnDisk();
 			}
-		} else {
+		}
+		else
+		{
 			LoadBuiltInCredentials();
 		}
 
-		if (instance == null) {
+		if (instance == null)
+		{
 			instance = this;
-			if (!isConnected && dataTargets.Keys.Count > 0) {
+			if (!isConnected && dataTargets.Keys.Count > 0)
+			{
 				TestConnectionToServer();
 			}
 		}
-		if (Application.platform != RuntimePlatform.WebGLPlayer) {
-			DetectDumpedLogs ();
+		if (Application.platform != RuntimePlatform.WebGLPlayer)
+		{
+			DetectDumpedLogs();
 		}
 	}
 
-	public void TestConnectionToServer () {
-				WWWForm testForm = new WWWForm ();
-				foreach (KeyValuePair<string, DataTarget> pair in dataTargets) {
-					TargetCredentials creds = pair.Value.credentials;
-					secHash = Md5Sum (creds.dbSecKey);
-					testForm.AddField ("secHashPost", "connectiontest");
-					StartCoroutine(ConnectToServer (testForm, creds.dbURL));
-					break;
-				}
+	public void TestConnectionToServer()
+	{
+		WWWForm testForm = new WWWForm();
+		foreach (KeyValuePair<string, DataTarget> pair in dataTargets)
+		{
+			TargetCredentials creds = pair.Value.credentials;
+			secHash = Md5Sum(creds.dbSecKey);
+			testForm.AddField("secHashPost", "connectiontest");
+			StartCoroutine(ConnectToServer(testForm, creds.dbURL));
+			break;
+		}
 	}
 
-	IEnumerator ConnectToServer(WWWForm form, string dbURL) {
+	IEnumerator ConnectToServer(WWWForm form, string dbURL)
+	{
 
-		if (dbURL != "") {
+		if (dbURL != "")
+		{
 			UnityWebRequest www = UnityWebRequest.Post(dbURL, form);
 
 			yield return www.SendWebRequest();
 
-			if(www.isNetworkError || www.isHttpError) {
+			if (www.isNetworkError || www.isHttpError)
+			{
 				Debug.LogError(www.error);
-				Debug.LogError(www.downloadHandler.text);				
+				Debug.LogError(www.downloadHandler.text);
 				yield return new WaitForSeconds(2.0f);
 				retries++;
-				if (retries < 3) {
-					StartCoroutine (ConnectToServer (form, dbURL));
-					if (statusMessage != null) {
+				if (retries < 3)
+				{
+					StartCoroutine(ConnectToServer(form, dbURL));
+					if (statusMessage != null)
+					{
 						statusMessage.text = "Establishing Connection..";
 						statusMessage.color = defaultColor;
 					}
-				} else {
-					if (statusMessage != null) {
+				}
+				else
+				{
+					if (statusMessage != null)
+					{
 						statusMessage.text = "DB Error: Could not reach the database.";
 						statusMessage.color = errorColor;
 					}
 					connectButton.SetActive(true);
 				}
-			} else {
-				print ("Connected to Server");
-				if (statusMessage != null) {
+			}
+			else
+			{
+				print("Connected to Server");
+				if (statusMessage != null)
+				{
 					statusMessage.text = "Connected to Server";
 					statusMessage.color = defaultColor;
 				}
 				isConnected = true;
-				if (Application.platform != RuntimePlatform.WebGLPlayer) {
+				if (Application.platform != RuntimePlatform.WebGLPlayer)
+				{
 					SaveCredentialsToDisk();
 				}
 				Destroy(mysqlCred);
-				if (eventSystem != null) {
+				if (eventSystem != null)
+				{
 					Destroy(eventSystem);
 				}
 			}
-		} else {
+		}
+		else
+		{
 			Debug.LogError("No URL was assigned");
 			connectButton.SetActive(true);
 		}
 	}
 
-	public void AddToUploadQueue(Dictionary<string, Dictionary<int, object>> logCollection, string targetLabel) {
-		
-		if (logCollection.Keys.Count == 0) {
-			Debug.LogError("logCollection contain no columns!");
+	public void AddToUploadQueue(LogStore logStore, string targetLabel)
+	{
+		//gets the log dictionary from the logStore object
+		SortedDictionary<string, List<string>> logDictionary =
+			logStore.ExportAll<SortedDictionary<string, List<string>>>();
+		if (logDictionary.Keys.Count == 0)
+		{
+			Debug.LogError("the logs " + targetLabel + " contain no columns!");
 			return;
 		}
 
-		if (!logCollection.ContainsKey("Email")) {
-			Debug.LogError("Log Collection does not contain a column with AAU Email Addresses!");
-			return;
+		if (dataTargets.ContainsKey(targetLabel))
+		{
+			dataTargets[targetLabel].logstoreToUpload.Add(logStore);
+			Debug.Log("Log Collection " + targetLabel + " with " + logDictionary.Keys.Count + " columns and " + logStore.RowCount + " rows prepared for upload.");
 		}
-
-		foreach (string key in logCollection.Keys) {
-			if (logCollection[key] == null) {
-				Debug.LogError("LogCollection contains column with no initialized Dictionary<int, object> for column " + key  + ". Please ensure that columns have data before adding to the upload queue.");
-				Debug.LogError("Aborting AddToUploadQueue..");
-				return;
-			}
-
-			if (logCollection[key].Keys.Count == 0) {
-				Debug.LogError("Dictionary Present, but no data present in column " + key  + ". Please ensure that columns have data before adding to the upload queue.");
-				Debug.LogError("Aborting AddToUploadQueue..");
-				return;
-			}
-
-			if (logCollection[key].Keys.Count != logCollection["Email"].Keys.Count)  {
-				Debug.LogWarning("The " + key + " column contain " + logCollection[key].Keys.Count + " rows, but the e-mail column contains " + logCollection["Email"].Keys.Count + "! Empty values will be passed on as NULL values.");
-			}
-		}
-		if (dataTargets.ContainsKey(targetLabel)) {
-			dataTargets[targetLabel].logsToUpload.Add(new Dictionary<string, Dictionary<int, object>>(logCollection));
-			Debug.Log ("Log Collection " + targetLabel + " with " + logCollection.Count + " columns and " + logCollection["Email"].Keys.Count + " rows prepared for upload.");
-		} else {
+		else
+		{
 			Debug.LogError("The targetLabel " + targetLabel + " does not match any of the loaded targets.");
 			Debug.LogError("Aborting AddToUploadQueue..");
 		}
 	}
 
-	public void UploadNow() {
+	public void UploadNow(Action callback)
+	{
 
 		//if (Time.time - lastUploadTime < timeout) {
 		//	Debug.LogWarning("Don't make frequent calls to MySQL.UploadNow(), uploading is an async operation!");
@@ -261,17 +285,21 @@ public class ConnectToMySQL : MonoBehaviour {
 
 		lastUploadTime = Time.time;
 
-		if (dataTargets.Keys.Count == 0) {
-			Debug.LogError("No logs in the upload queue. Use AddToUploadQueue() to add a logCollection to the queue before calling UploadNow().");
+		if (dataTargets.Keys.Count == 0)
+		{
+			Debug.LogError("No logs in the upload queue. Use AddToUploadQueue() to add a LogStore to the queue before calling UploadNow().");
 			return;
 		}
-		if (dataTargets.Keys.Count > 0) {
-			foreach (KeyValuePair<string, DataTarget> pair in dataTargets) {
+		if (dataTargets.Keys.Count > 0)
+		{
+			foreach (KeyValuePair<string, DataTarget> pair in dataTargets)
+			{
 				DataTarget target = pair.Value;
-				foreach (Dictionary<string, Dictionary<int, object>> logCollection in target.logsToUpload) {
-					Debug.Log ("Attempting to upload logCollection with " + logCollection.Count + " rows.");
-					string dbCols = string.Join(sep,logCollection.Keys.ToArray());
-					string dataString = ParseDataToString(logCollection);
+				foreach (LogStore logStore in target.logstoreToUpload)
+				{
+					Debug.Log("Attempting to upload LogStore with " + logStore.RowCount + " rows.");
+					string dbCols = logStore.GenerateHeaders();
+					string dataString = logStore.ExportAll<string>();
 					WWWForm form = PrepareForm(dbCols, dataString, target.credentials);
 
 					// Store data for later in case we need to dump them.
@@ -286,101 +314,96 @@ public class ConnectToMySQL : MonoBehaviour {
 					df.dbCols = dbCols;
 					df.dataString = dataString;
 					dumpedforms.Add(df);
-
-					StartCoroutine (SubmitLogs (form, target.credentials.dbURL));
+					StartCoroutine(SubmitLogs(form, target.credentials.dbURL, callback));
 				}
-				target.logsToUpload.Clear();
+				target.logstoreToUpload.Clear();
 			}
 		}
 	}
 
-    // Converts the values of the parameters (in a "object format") to a string, formatting them to the
-    // correct format in the process.
-    private string ConvertToString(object arg, string col)
-    {
+	// Converts the values of the parameters (in a "object format") to a string, formatting them to the
+	// correct format in the process.
+	private string ConvertToString(object arg, string col)
+	{
 		string processedArg;
-        if (arg is float)
-        {
-            processedArg = ((float)arg).ToString("0.0000").Replace(",", ".");
-        } else if (arg is int) {
-            processedArg = arg.ToString();
-        } else if (arg is bool) {
-            processedArg = ((bool)arg) ? "TRUE" : "FALSE";
-        } else if (arg is Vector3)
-        {
-            processedArg = ((Vector3)arg).ToString("0.0000").Replace(",", ".");
-        }
-        else
-        {
-            processedArg = arg.ToString();
-        }
+		if (arg is float)
+		{
+			processedArg = ((float)arg).ToString("0.0000").Replace(",", ".");
+		}
+		else if (arg is int)
+		{
+			processedArg = arg.ToString();
+		}
+		else if (arg is bool)
+		{
+			processedArg = ((bool)arg) ? "TRUE" : "FALSE";
+		}
+		else if (arg is Vector3)
+		{
+			processedArg = ((Vector3)arg).ToString("0.0000").Replace(",", ".");
+		}
+		else
+		{
+			processedArg = arg.ToString();
+		}
 
-		if (processedArg.Contains(",")) {
+		if (processedArg.Contains(","))
+		{
 			Debug.LogWarning("Value " + processedArg + "from column " + col + "contains comma (,). It has been replaced with a dot.");
-			 processedArg.Replace(',', '.');
-		} else if (processedArg.Contains(";")) {
+			processedArg.Replace(',', '.');
+		}
+		else if (processedArg.Contains(";"))
+		{
 			Debug.LogWarning("Value " + processedArg + "from column " + col + "contains semi-colon (;). It has been replaced with a dash.");
 			processedArg.Replace(';', '-');
-		} else if (processedArg.Contains("\"")) {
+		}
+		else if (processedArg.Contains("\""))
+		{
 			Debug.LogWarning("Value " + processedArg + "from column " + col + "contains quotation mark (\"). It has been replaced with a dash.");
 			processedArg.Replace('\"', '-');
-		} else if (processedArg.Contains("\n")) {
+		}
+		else if (processedArg.Contains("\n"))
+		{
 			Debug.LogWarning("Value " + processedArg + "from column " + col + "contains return character. It has been removed.");
 			processedArg.Replace("\n", String.Empty);
-		} else if (processedArg.Contains("\r")) {
+		}
+		else if (processedArg.Contains("\r"))
+		{
 			Debug.LogWarning("Value " + processedArg + "from column " + col + "contains return character. It has been removed.");
 			processedArg.Replace("\r", String.Empty);
 		}
 		return processedArg;
-    }
-
-	private string ParseDataToString(Dictionary<string, Dictionary<int, object>> logCollection) {
-		// Create a string with the data
-		string dataString = "";
-		object temp;
-		for(int i = 0; i < logCollection["Email"].Keys.Count; i++) {
-			List<string> row = new List<string>();
-			foreach(string key in logCollection.Keys) {
-				if (logCollection[key].TryGetValue(i, out temp)) {
-					row.Add(ConvertToString(temp, key));
-				} else {
-					row.Add("NULL");
-				}
-			}
-			if(i != 0) {
-				dataString += ";";
-			}
-			dataString += string.Join(sep,row.ToArray());
-		}
-		return dataString;
 	}
 
-	private WWWForm PrepareForm(string dbCols, string dataString, TargetCredentials credentials) {
-		WWWForm form = new WWWForm ();
+	private WWWForm PrepareForm(string dbCols, string dataString, TargetCredentials credentials)
+	{
+		WWWForm form = new WWWForm();
 
 		// Add credentials to form
-		form.AddField ("dbnamePost", credentials.dbName);
-		form.AddField ("tablePost", credentials.table);
-		form.AddField ("usernamePost", credentials.username);
-		form.AddField ("passwordPost", credentials.password);
-		form.AddField ("secHashPost",Md5Sum (credentials.dbSecKey));
+		form.AddField("dbnamePost", credentials.dbName);
+		form.AddField("tablePost", credentials.table);
+		form.AddField("usernamePost", credentials.username);
+		form.AddField("passwordPost", credentials.password);
+		form.AddField("secHashPost", Md5Sum(credentials.dbSecKey));
 
-        colsHash = Md5Sum(dbCols);
+		colsHash = Md5Sum(dbCols);
 		form.AddField("db_hash", colsHash);
-		Debug.Log ("columns to insert: " + dbCols);
-		form.AddField ("dbCol", dbCols);
+		Debug.Log("columns to insert: " + dbCols);
+		form.AddField("dbCol", dbCols);
 
-        dataHash = Md5Sum(dataString);
-        form.AddField("dataHashPost", dataHash);
-		Debug.Log ("data to submit: " + dataString);
-		form.AddField ("dataPost", dataString);
+		dataHash = Md5Sum(dataString);
+		form.AddField("dataHashPost", dataHash);
+		Debug.Log("data to submit: " + dataString);
+		form.AddField("dataPost", dataString);
 		form.AddField("dbURL", credentials.dbURL);
 		return form;
 	}
 
-	private IEnumerator SubmitLogs(WWWForm form, string dbURL) {
-		Debug.Log ("Submitting logs..");
-		if (statusMessage != null) {
+	private IEnumerator SubmitLogs(WWWForm form, string dbURL, Action callback = null)
+	{
+		Debug.Log("Submitting logs..");
+		if (statusMessage != null)
+		{
 			statusMessage.text = "Submitting logs..";
 			statusMessage.color = defaultColor;
 		}
@@ -389,73 +412,93 @@ public class ConnectToMySQL : MonoBehaviour {
 		yield return www.SendWebRequest();
 
 		LogUploadResult logUploadResult = new LogUploadResult();
-		if(www.isNetworkError || www.isHttpError) {
+		if (www.isNetworkError || www.isHttpError)
+		{
 			logUploadResult.status = LogUploadStatus.Error;
 			logUploadResult.error = www.error;
 			onLogsUploaded.Invoke(logUploadResult);
-            Debug.LogError(("Unable to submit logs: " + www.error));
-			if (statusMessage != null) {
+			Debug.LogError(("Unable to submit logs: " + www.error));
+			if (statusMessage != null)
+			{
 				statusMessage.text = (www.downloadHandler.text);
 				statusMessage.color = errorColor;
 			}
-            Debug.LogError(www.downloadHandler.text);
-			while (dumplock) {
+			Debug.LogError(www.downloadHandler.text);
+			while (dumplock)
+			{
 				yield return new WaitForSeconds(1f);
 			}
 			dumplock = true;
-			if (Application.platform != RuntimePlatform.WebGLPlayer) {
-				DumpLogsToUpload();				
+			if (Application.platform != RuntimePlatform.WebGLPlayer)
+			{
+				DumpLogsToUpload();
 			}
-			dumplock = false;	
-        } else {
-			Debug.Log ("Posted successfully");
-			if (statusMessage != null) {
+			dumplock = false;
+		}
+		else
+		{
+			Debug.Log("Posted successfully");
+			if (statusMessage != null)
+			{
 				statusMessage.text = "Posted successfully";
-				statusMessage.color = defaultColor;			
+				statusMessage.color = defaultColor;
 			}
 			logUploadResult.status = LogUploadStatus.Success;
 			logUploadResult.error = "";
 			onLogsUploaded.Invoke(logUploadResult);
+			if (callback != null)
+			{
+				callback();
+			}
 		}
 
 	}
 
-	private void DumpLogsToUpload() {
-		for (int i = 0; i < dumpedforms.Count; i++) {
-			if (dumpedforms[i] != null) {
+	private void DumpLogsToUpload()
+	{
+		for (int i = 0; i < dumpedforms.Count; i++)
+		{
+			if (dumpedforms[i] != null)
+			{
 				var fileDumps = Directory.GetFiles(directory, "logdump*");
-				
-				using (StreamWriter writer = File.AppendText (directory + "logdump" + fileDumps.Length + ".json")) {
-					writer.WriteLine (dumpedforms[i].SaveToString());
+
+				using (StreamWriter writer = File.AppendText(directory + "logdump" + fileDumps.Length + ".json"))
+				{
+					writer.WriteLine(dumpedforms[i].SaveToString());
 				}
-				
-				Debug.Log ("Dumping logdump to disk at: " + directory);
+
+				Debug.Log("Dumping logdump to disk at: " + directory);
 				dumpedforms[i] = null;
 			}
 		}
 	}
 
-	private void DetectDumpedLogs() {
+	private void DetectDumpedLogs()
+	{
 		// If no credentials are available, we skip dumplog detection.
-		if (dataTargets.Keys.Count == 0) {
+		if (dataTargets.Keys.Count == 0)
+		{
 			Debug.LogWarning("No credentials loaded, aborting logdump detection..");
 			return;
 		}
 
 		var fileDumps = Directory.GetFiles(directory, "logdump*");
 
-		if (fileDumps == null) {
+		if (fileDumps == null)
+		{
 			return;
 		}
 
 		List<DumpedForm> forms = new List<DumpedForm>();
 
-		foreach (string filename in fileDumps) {
+		foreach (string filename in fileDumps)
+		{
 			// determine whether  file is empty.
 			var fi = new FileInfo(filename);
-			if (fi.Length == 0) {
+			if (fi.Length == 0)
+			{
 				Debug.LogWarning("empty logdump " + filename + ", deleting coldump and logdump..");
-				File.Delete (filename);
+				File.Delete(filename);
 				continue;
 			}
 
@@ -464,30 +507,34 @@ public class ConnectToMySQL : MonoBehaviour {
 
 			DumpedForm form = new DumpedForm();
 
-			using (StreamReader reader = new StreamReader(filename)) {
-				while((line = reader.ReadLine()) != null)  
-				{  
+			using (StreamReader reader = new StreamReader(filename))
+			{
+				while ((line = reader.ReadLine()) != null)
+				{
 					json += line;
 				}
 			}
 
 			JsonUtility.FromJsonOverwrite(json, form);
-			
 
-			File.Delete (filename);
+
+			File.Delete(filename);
 
 			// determine whether filestrings are empty.
-			if (String.IsNullOrEmpty(json.Trim())) {
+			if (String.IsNullOrEmpty(json.Trim()))
+			{
 				Debug.LogWarning("malformed dump " + filename + ", deleting coldump and logdump..");
 				continue;
 			}
 
-			Debug.Log ("Dumped Logs Detected.");
+			Debug.Log("Dumped Logs Detected.");
 			forms.Add(form);
 		}
 
-		foreach (DumpedForm dumpform in forms) {
-			TargetCredentials creds = new TargetCredentials() {
+		foreach (DumpedForm dumpform in forms)
+		{
+			TargetCredentials creds = new TargetCredentials()
+			{
 				dbName = dumpform.dbName,
 				table = dumpform.table,
 				username = dumpform.username,
@@ -496,12 +543,13 @@ public class ConnectToMySQL : MonoBehaviour {
 				dbSecKey = dumpform.dbSecKey
 			};
 			var form = PrepareForm(dumpform.dbCols, dumpform.dataString, creds);
-			StartCoroutine (SubmitLogs (form, dumpform.dbURL));
+			StartCoroutine(SubmitLogs(form, dumpform.dbURL));
 		}
-		
+
 	}
 
-	private static string Md5Sum(string strToEncrypt) {
+	private static string Md5Sum(string strToEncrypt)
+	{
 		System.Text.UTF8Encoding ue = new System.Text.UTF8Encoding();
 		byte[] bytes = ue.GetBytes(strToEncrypt);
 
@@ -520,7 +568,8 @@ public class ConnectToMySQL : MonoBehaviour {
 		return hashString.PadLeft(32, '0');
 	}
 
-	public void Toggle_AuthConnect() {
+	public void Toggle_AuthConnect()
+	{
 		DataTarget target = new DataTarget();
 		target.credentials.label = labelInputField.text;
 		target.credentials.dbSecKey = dbSecKeyInputField.text;
@@ -534,28 +583,34 @@ public class ConnectToMySQL : MonoBehaviour {
 	}
 
 
-	private void SaveCredentialsToDisk() {
-		foreach (KeyValuePair<string, DataTarget> pair in dataTargets) {
+	private void SaveCredentialsToDisk()
+	{
+		foreach (KeyValuePair<string, DataTarget> pair in dataTargets)
+		{
 			DataTarget target = pair.Value;
 			string authDirectory = Application.persistentDataPath + "/Auth/";
 
-			if (File.Exists (authDirectory + "mysql_" + target.credentials.label + ".txt")) {
-				File.Delete (authDirectory + "mysql_" + target.credentials.label + ".txt");
+			if (File.Exists(authDirectory + "mysql_" + target.credentials.label + ".txt"))
+			{
+				File.Delete(authDirectory + "mysql_" + target.credentials.label + ".txt");
 			}
 
 			string json = target.credentials.SaveToString();
 
-			using (StreamWriter writer = File.AppendText (authDirectory + "mysql_" + target.credentials.label + ".json")) {
-				writer.WriteLine (json);
+			using (StreamWriter writer = File.AppendText(authDirectory + "mysql_" + target.credentials.label + ".json"))
+			{
+				writer.WriteLine(json);
 			}
 
 			Debug.Log("Credentials saved to: " + authDirectory + "mysql_" + target.credentials.label + ".json");
 		}
 	}
 
-	private void LoadBuiltInCredentials() {
+	private void LoadBuiltInCredentials()
+	{
 
-		foreach (TextAsset creds in builtInCredentials) {
+		foreach (TextAsset creds in builtInCredentials)
+		{
 			DataTarget target = new DataTarget();
 			target.credentials = TargetCredentials.CreateFromJSON(creds.text);
 			Debug.Log(target.credentials.label);
@@ -563,32 +618,39 @@ public class ConnectToMySQL : MonoBehaviour {
 		}
 	}
 
-	private void DetectCredentialsOnDisk() {
+	private void DetectCredentialsOnDisk()
+	{
 		string authDirectory = Application.persistentDataPath + "/Auth/";
 
 		var credentialFiles = Directory.GetFiles(authDirectory, "mysql*");
 		Debug.Log(credentialFiles.Length);
-		if (credentialFiles.Length > 0) {
-			foreach  (var filepath in credentialFiles) {
-			Debug.Log("Loading credentials from: " + filepath);
-			string line;
-			string json = "";
-			using (StreamReader reader = new StreamReader(filepath)) {
-				while((line = reader.ReadLine()) != null)  
-				{  
-					json += line;
+		if (credentialFiles.Length > 0)
+		{
+			foreach (var filepath in credentialFiles)
+			{
+				Debug.Log("Loading credentials from: " + filepath);
+				string line;
+				string json = "";
+				using (StreamReader reader = new StreamReader(filepath))
+				{
+					while ((line = reader.ReadLine()) != null)
+					{
+						json += line;
+					}
 				}
-			}
 
-			DataTarget target = new DataTarget();
-			target.credentials = TargetCredentials.CreateFromJSON(json);
-			dataTargets.Add(target.credentials.label, target);
+				DataTarget target = new DataTarget();
+				target.credentials = TargetCredentials.CreateFromJSON(json);
+				dataTargets.Add(target.credentials.label, target);
 			}
-		} else {
+		}
+		else
+		{
 			mysqlCred = Instantiate(Resources.Load("MySQLAuthCanvas", typeof(GameObject))) as GameObject;
 			mysqlCred.SetActive(true);
 
-			if (UnityEngine.EventSystems.EventSystem.current == null) {
+			if (UnityEngine.EventSystems.EventSystem.current == null)
+			{
 				eventSystem = Instantiate(Resources.Load("MySQLEventSystem", typeof(GameObject))) as GameObject;
 				eventSystem.SetActive(true);
 			}
@@ -606,7 +668,7 @@ public class ConnectToMySQL : MonoBehaviour {
 			Button button = connectButton.GetComponent<Button>();
 			button.onClick.AddListener(() => Toggle_AuthConnect());
 		}
-		
+
 	}
-		
+
 }
