@@ -174,18 +174,10 @@ public class LogStore
     {
         string timeStamp = GetTimeStamp();
         string frameCount = GetFrameCount();
-        if (LogType == LogType.LogEachRow)
-        {
-            AddToDictIfNotExists(CurrentLogRow, "Timestamp", timeStamp);
-            AddToDictIfNotExists(CurrentLogRow, "Framecount", frameCount);
-            AddToDictIfNotExists(CurrentLogRow, "SessionID", SessionId);
-            AddToDictIfNotExists(CurrentLogRow, "Email", email);
-        }
-        else if (LogType == LogType.OneRowOverwrite)
-        {
-            AddToDictIfNotExists(CurrentLogRow, "SessionID", SessionId);
-            AddToDictIfNotExists(CurrentLogRow, "Email", email);
-        }
+        AddToDictIfNotExists(CurrentLogRow, "Timestamp", timeStamp);
+        AddToDictIfNotExists(CurrentLogRow, "Framecount", frameCount);
+        AddToDictIfNotExists(CurrentLogRow, "SessionID", SessionId);
+        AddToDictIfNotExists(CurrentLogRow, "Email", email);
     }
 
     //Terminates the current row 
