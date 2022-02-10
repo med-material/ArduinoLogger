@@ -52,10 +52,8 @@ public class WriteToCSV
 
         new Thread(() =>
         {
-            //disables the possibility to log data durring the saving process
-            logStore.IsReadOnly = true;
             Write();
-            logStore.IsReadOnly = false;
+            logStore.RemoveSavingTarget(TargetType.CSV);
             callback();
         }).Start();
     }
