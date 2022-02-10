@@ -268,6 +268,12 @@ public class LoggingManager : MonoBehaviour
     {
         if (logsList.ContainsKey(collectionLabel))
         {
+ 
+            foreach (var targetType in targetsEnabled)
+            {
+                logsList[collectionLabel].AddSavingTarget(targetType);
+            }
+
             //we generate the string and then we save the logs in the callback
             //by doing this, we are sure that the logs will be exported only once
             GenerateLogString(collectionLabel, () =>
@@ -377,18 +383,21 @@ public class LoggingManager : MonoBehaviour
         if (!logsList.ContainsKey(label))
         {
             Debug.LogError("Could not find collection " + label + ". Aborting.");
+            logsList[label].RemoveSavingTarget(TargetType.MySql);
             return;
         }
 
         if (logsList[label].RowCount == 0)
         {
             Debug.LogError("Collection " + label + " is empty. Aborting.");
+            logsList[label].RemoveSavingTarget(TargetType.MySql);
             return;
         }
 
         connectToMySQL.AddToUploadQueue(logsList[label], label);
         connectToMySQL.UploadNow(() =>
         {
+            logsList[label].RemoveSavingTarget(TargetType.MySql);
             logsList[label].TargetsSaved[TargetType.MySql] = true;
             SaveCallback(logsList[label], shouldClear);
         });

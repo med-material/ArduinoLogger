@@ -261,6 +261,7 @@ public class ConnectToMySQL : MonoBehaviour
 		if (logDictionary.Keys.Count == 0)
 		{
 			Debug.LogError("the logs " + targetLabel + " contain no columns!");
+            logStore.RemoveSavingTarget(TargetType.MySql);
 			return;
 		}
 
@@ -273,6 +274,7 @@ public class ConnectToMySQL : MonoBehaviour
 		{
 			Debug.LogError("The targetLabel " + targetLabel + " does not match any of the loaded targets.");
 			Debug.LogError("Aborting AddToUploadQueue..");
+            logStore.RemoveSavingTarget(TargetType.MySql);
 		}
 	}
 

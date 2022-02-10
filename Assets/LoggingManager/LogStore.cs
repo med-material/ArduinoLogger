@@ -20,7 +20,7 @@ public class LogStore
     private StringBuilder logString;
     public string Label { get; set; }
 
-    public bool IsReadOnly { get; set; }
+    private List<TargetType> targetsSaving;
     private bool isLogStringReady;
 
     public LogType LogType;
@@ -64,7 +64,7 @@ public class LogStore
         LogType logType)
     {
         InitiateTargetsSaved();
-        IsReadOnly = false;
+        targetsSaving = new List<TargetType>();
         this.Label = label;
         logs = new SortedDictionary<string, List<string>>();
         logString = new StringBuilder();
@@ -110,7 +110,7 @@ public class LogStore
     public void Add(string column, object data)
     {
         //if IsReadOnly is true, it is impossible to add data to the logs
-        if (IsReadOnly)
+        if (IsReadOnly())
         {
             Debug.LogError("Impossible to add data to log " + Label + " while saving it");
             return;
@@ -227,11 +227,27 @@ public class LogStore
         RowCount++;
     }
 
+    public void AddSavingTarget(TargetType targetType)
+    {
+        targetsSaving.Add(targetType);
+    }
+
+    public void RemoveSavingTarget(TargetType targetType)
+    {
+        targetsSaving.Remove(targetType);
+    }
+
+    //if targetsSaving is not empty, then the logStore is read-only
+    public bool IsReadOnly()
+    {
+        return targetsSaving.Count != 0;
+    }
+
     //Clears all the logs
     public void Clear()
     {
         //if IsReadOnly is true, it is impossible to clear the logs
-        if (IsReadOnly)
+        if (IsReadOnly())
         {
             Debug.LogError("Impossible to clear the log " + Label + " while saving it");
             return;
