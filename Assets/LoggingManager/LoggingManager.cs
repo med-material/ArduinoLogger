@@ -90,6 +90,10 @@ public class LoggingManager : MonoBehaviour
     public void NewFilestamp()
     {
         sessionID = Guid.NewGuid().ToString();
+        foreach (var pair in logsList)
+        {
+            pair.Value.SessionId = sessionID;
+        }
     }
 
     public void SetSavePath(string path)
