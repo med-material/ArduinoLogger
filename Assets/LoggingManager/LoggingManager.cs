@@ -80,16 +80,29 @@ public class LoggingManager : MonoBehaviour
 
         NewFilestamp();
         CultureInfo.DefaultThreadCurrentCulture = CultureInfo.InvariantCulture;
+
+        if (CreateMetaCollection)
+        {
+            //if the log added is the Meta one and doesn't exists, we create it
+            //if (AddMetaCollectionToList())
+            AddMetaCollectionToList();
+            //AddToLogstore(logsList["Meta"], logData);
+            //
+            //}
+        }
+
         if (savePath == "")
         {
             savePath = System.Environment.GetFolderPath(System.Environment.SpecialFolder.MyDocuments);
         }
+        
     }
 
 
     public void NewFilestamp()
     {
         sessionID = Guid.NewGuid().ToString();
+        deviceID = SystemInfo.deviceUniqueIdentifier;
         foreach (var pair in logsList)
         {
             pair.Value.SessionId = sessionID;
@@ -129,10 +142,6 @@ public class LoggingManager : MonoBehaviour
             Debug.LogWarning(collectionLabel + " already exists");
             return;
         }
-        if (CreateMetaCollection)
-        {
-            AddMetaCollectionToList();
-        }
         LogStore logStore = new LogStore(collectionLabel, email, sessionID, logStringOverTime);
         logsList.Add(collectionLabel, logStore);
     }
@@ -148,16 +157,6 @@ public class LoggingManager : MonoBehaviour
         //this will be executed only once if the log has not been created.
         else
         {
-            if (CreateMetaCollection)
-            {
-                //if the log added is the Meta one and doesn't exists, we create it
-                if (AddMetaCollectionToList() && collectionLabel == "Meta")
-                {
-                    AddToLogstore(logsList["Meta"], logData);
-                    return;
-                }
-            }
-
             LogStore newLogStore = new LogStore(collectionLabel, email, sessionID, logStringOverTime);
             AddToLogstore(newLogStore, logData);
             logsList.Add(collectionLabel, newLogStore);
@@ -186,16 +185,6 @@ public class LoggingManager : MonoBehaviour
         //this will be executed only once if the log has not been created.
         else
         {
-            if (CreateMetaCollection)
-            {
-                //if the log added is the Meta one and doesn't exists, we create it
-                if (AddMetaCollectionToList() && collectionLabel == "Meta")
-                {
-                    AddToLogstore(logsList["Meta"], columnLabel, value);
-                    return;
-                }
-            }
-
             LogStore newLogStore = new LogStore(collectionLabel, email, sessionID, logStringOverTime);
             logsList.Add(collectionLabel, newLogStore);
             AddToLogstore(newLogStore, columnLabel, value);
