@@ -74,18 +74,10 @@ public class LogStore
         this.email = email;
         SessionId = sessionID;
         this.LogType = logType; ;
-        if (logType == LogType.LogEachRow)
-        {
-            logs.Add("Timestamp", new List<string>());
-            logs.Add("Framecount", new List<string>());
-            logs.Add("SessionID", new List<string>());
-            logs.Add("Email", new List<string>());
-        }
-        else if (logType == LogType.OneRowOverwrite)
-        {
-            logs.Add("SessionID", new List<string>());
-            logs.Add("Email", new List<string>());
-        }
+        logs.Add("Timestamp", new List<string>());
+        logs.Add("Framecount", new List<string>());
+        logs.Add("SessionID", new List<string>());
+        logs.Add("Email", new List<string>());
     }
 
 
