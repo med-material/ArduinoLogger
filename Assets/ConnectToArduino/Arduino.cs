@@ -492,7 +492,7 @@ public class Arduino : MonoBehaviour
 
                 //Catch any timeout errors (can happen if the Arduino is busy with something else)
                 readTimeouts++;
-                if (receiverState == ReceiverState.ReadingData && readTimeouts > 50)
+                if (receiverState == ReceiverState.ReadingData && readTimeouts > 5000)
                 {
                     StopLogging();
                 }
