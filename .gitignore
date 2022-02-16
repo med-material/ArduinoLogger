@@ -26,7 +26,7 @@ ExportedObj/
 *.svd
 mysql_auth.txt
 mysql_auth.txt.meta
-
+*.json*
 # Unity3D generated meta files
 *.pidb.meta
 
