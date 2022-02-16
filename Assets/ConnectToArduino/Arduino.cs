@@ -60,6 +60,7 @@ public class Arduino : MonoBehaviour
     public GameObject stopbutton;
     public GameObject subtext;
     public GameObject restartbutton;
+    public GameObject showData;
     public Text statustext;
     public Text connectiontext;
     public Button startbutton;
@@ -110,6 +111,10 @@ public class Arduino : MonoBehaviour
 
     public delegate void NewHeaderEventHandler(List<string> arduinoHeaders);
     public static event NewHeaderEventHandler NewHeaderEvent;
+
+    [Serializable]
+    public class OutputLabelEvent : UnityEvent<string> { }
+    public OutputLabelEvent outputLabelEvent;
 
     [Serializable]
     public class Sendingtodb : UnityEvent<Dictionary<string, List<string>>> { }
@@ -426,6 +431,7 @@ public class Arduino : MonoBehaviour
             else if (param == "label")
             {
                 outputLabel = val;
+                outputLabelEvent.Invoke(outputLabel);
             }
             else
             {

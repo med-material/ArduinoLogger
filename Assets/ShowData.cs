@@ -12,6 +12,8 @@ public class ShowData : MonoBehaviour
 
     [SerializeField]
     private GameObject showDataButton;
+    [SerializeField]
+    private GameObject Arduino;
 
     // Start is called before the first frame update
     void Start()

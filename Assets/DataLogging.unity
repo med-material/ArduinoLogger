@@ -2360,7 +2360,7 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 2053938094}
   m_HandleRect: {fileID: 2053938093}
   m_Direction: 0
-  m_Value: 1
+  m_Value: 0
   m_Size: 1
   m_NumberOfSteps: 0
   m_OnValueChanged:
@@ -2609,7 +2609,18 @@ MonoBehaviour:
   errorColor: {r: 0, g: 0, b: 0, a: 0}
   onLogsUploaded:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 870000801}
+        m_MethodName: ShowRShinyWebApplication
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!4 &870000800
 Transform:
   m_ObjectHideFlags: 0
@@ -2637,6 +2648,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   showDataButton: {fileID: 1282954840}
+  Arduino: {fileID: 0}
 --- !u!1 &901601542
 GameObject:
   m_ObjectHideFlags: 0
@@ -2779,6 +2791,7 @@ MonoBehaviour:
   stopbutton: {fileID: 610943756}
   subtext: {fileID: 2131162396}
   restartbutton: {fileID: 994433020}
+  showData: {fileID: 0}
   statustext: {fileID: 407399847}
   connectiontext: {fileID: 2066811911}
   startbutton: {fileID: 738073541}
@@ -2791,12 +2804,26 @@ MonoBehaviour:
   ParseIncomingData: 1
   separator: "\t"
   headers: []
+  outputLabelEvent:
+    m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 870000801}
+        m_MethodName: SetTargetDatabaseTable
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
   pushdata:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 0}
-        m_MethodName: AddToUploadQueue
-        m_Mode: 0
+      - m_Target: {fileID: 870000801}
+        m_MethodName: SetTargetDatabaseTable
+        m_Mode: 5
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
           m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
