@@ -58,6 +58,7 @@ public class ConnectToArduino : MonoBehaviour
     private float connectTimer = 0f;
     private float connectTimeout = 3f;
     private bool connectingToArduino = false;
+    private bool shouldRefresh = true;
 
     public string email;
     public string pid;
@@ -84,7 +85,9 @@ public class ConnectToArduino : MonoBehaviour
         while (true)
         {
             yield return new WaitForSeconds(5);
-            DisplayAvailablePorts();
+            if (shouldRefresh) {
+                DisplayAvailablePorts();
+            }
         }
     }
 
@@ -131,6 +134,7 @@ public class ConnectToArduino : MonoBehaviour
         {
             arduinoDropdown.gameObject.SetActive(false);
             serialPortInputField.gameObject.SetActive(true);
+            shouldRefresh = false;
         }
     }
 
@@ -168,6 +172,7 @@ public class ConnectToArduino : MonoBehaviour
     public void dropdown_Changed() {
         if (arduinoDropdown.value == arduinoDropdown.options.Count()-1) {
             // Custom Option
+            shouldRefresh = false;
             arduinoDropdown.gameObject.SetActive(false);
             serialPortInputField.gameObject.SetActive(true);
             serialPortInputField.text = "";
