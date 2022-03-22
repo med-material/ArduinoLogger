@@ -111,7 +111,15 @@ public class ConnectToArduino : MonoBehaviour
         string[] ports = SerialPort.GetPortNames();
         if (ports.Length > 0)
         {
-            arduinoDropdown.AddOptions(ports.ToList());
+            // OSX reports ports with "tty.*" extension but we need to use "cu.*"  to access it.
+            if (Application.platform == RuntimePlatform.OSXEditor || Application.platform == RuntimePlatform.OSXPlayer) {
+                foreach (string port in ports) {
+                    string p = port.Replace("/dev/tty","/dev/cu");
+                    arduinoDropdown.AddOptions(new List<string> { p});
+                }
+            } else {
+                arduinoDropdown.AddOptions(ports.ToList());
+            }
             arduinoDropdown.AddOptions(new List<string> { "Custom.." });
             serialPortInputField.text = arduinoDropdown.options[arduinoDropdown.value].text;
             arduinoDropdown.gameObject.SetActive(true);
