@@ -76,19 +76,6 @@ public class ConnectToArduino : MonoBehaviour
         string[] ports = SerialPort.GetPortNames();
         DisplayAvailablePorts();
         DontDestroyOnLoad (transform.gameObject);
-        refreshTimer = RefreshAvailablePorts();
-        StartCoroutine(refreshTimer);
-    }
-
-    IEnumerator RefreshAvailablePorts()
-    {
-        while (true)
-        {
-            yield return new WaitForSeconds(5);
-            if (shouldRefresh) {
-                DisplayAvailablePorts();
-            }
-        }
     }
 
     void Update()
@@ -147,7 +134,6 @@ public class ConnectToArduino : MonoBehaviour
 
 
     public void RedirectToScene() {
-        StopCoroutine(refreshTimer);
         SceneManager.LoadSceneAsync(redirectScene);
 
     }
