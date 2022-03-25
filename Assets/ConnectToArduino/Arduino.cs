@@ -251,6 +251,12 @@ public class Arduino : MonoBehaviour
         else if (receiverState == ReceiverState.ReadingHeader)
         {
             // Parse header
+            connectToArduino = GameObject.Find("ConnectToArduino").GetComponent<ConnectToArduino>();
+            // Update PID whenever we get a new header from Arduino
+            // This enables us to use the reconnect button
+            pid = connectToArduino.pid;
+            email = connectToArduino.email;
+            Comment = connectToArduino.comment;
             timestamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.ffff");
             //List<string> headersList = new List<string>();
             headers = serialInput.Split('\t').ToList();

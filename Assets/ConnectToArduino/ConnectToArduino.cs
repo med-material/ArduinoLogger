@@ -69,13 +69,55 @@ public class ConnectToArduino : MonoBehaviour
     private IEnumerator refreshTimer;
 
     private readonly char[] charsToRemoveFromComment = new char[] { ';', ',' };
+    public static ConnectToArduino Instance = null;
 
     void Awake()
     {
         eventSystem = EventSystem.current;
         string[] ports = SerialPort.GetPortNames();
         DisplayAvailablePorts();
-        DontDestroyOnLoad (transform.gameObject);
+
+        // If there isn't already an instance of ConnectToArduino, set it to this. 
+        if (Instance == null)
+        {
+            Instance = this;
+        } 
+        // If there is an existing instance, destroy it. 
+        else if (Instance != this)
+        {
+            Destroy(gameObject);
+        }
+        //Setting dontdestroyonload to our soundmanager so it will keep being there when reloading the scene.
+        DontDestroyOnLoad(gameObject);
+    }
+
+    void OnLevelWasLoaded(int level) {
+        // only find connect button when we are in connecting scene
+        if (level == 0) {
+            GameObject.Find("ConnectButton").GetComponent<Button>().onClick.AddListener(ConnectPressed);
+
+            emailInputField = GameObject.Find("emailInputField").GetComponent<InputField>();
+            CommentInputField = GameObject.Find("CommentInputField").GetComponent<InputField>();
+            // input field is inactive so have to find it through parent.
+            Transform[] trs= GameObject.Find("ArduinoInputHolder").GetComponentsInChildren<Transform>(true);
+            foreach(Transform t in trs){
+                if(t.name == "arduinoInputField"){
+                    serialPortInputField = t.gameObject.GetComponent<InputField>();
+                    break;
+                }
+            }
+            baudRateInputField = GameObject.Find("baudInputField").GetComponent<InputField>();
+            PIDInputField = GameObject.Find("PIDInputField").GetComponent<InputField>();
+            arduinoDropdown = GameObject.Find("Dropdown").GetComponent<Dropdown>();
+            Transform[] ctrs= GameObject.Find("ConnectButtonHolder").GetComponentsInChildren<Transform>(true);
+            foreach(Transform t in ctrs){
+                if(t.name == "ConnectingText"){
+                    connectStatus = t.gameObject.GetComponent<Text>();
+                    break;
+                }
+            }
+            refreshButton = GameObject.Find("RefreshButton").GetComponent<Button>();
+        }
     }
 
     void Update()
@@ -176,6 +218,7 @@ public class ConnectToArduino : MonoBehaviour
     }
 
     public void ConnectPressed() {
+
         connectStatus.text = "Connecting...";
         string regex = @"(^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+.[a-zA-Z0-9-.]+$)";
         var match = Regex.Match(emailInputField.text, regex, RegexOptions.IgnoreCase);
@@ -202,17 +245,17 @@ public class ConnectToArduino : MonoBehaviour
         UnityEngine.Debug.Log(sanitizedSerialPort);
         UnityEngine.Debug.Log(sanitizedBaudRate);
         serialport = new SerialPort (sanitizedSerialPort, sanitizedBaudRate);
-        email = emailInputField.text;
-        comment = CommentInputField.text;
+        email = GameObject.Find("emailInputField").GetComponent<InputField>().text;
+        comment = GameObject.Find("CommentInputField").GetComponent<InputField>().text;
+        pid = GameObject.Find("PIDInputField").GetComponent<InputField>().text;
         Debug.Log(email);
-        if( string.IsNullOrEmpty( CommentInputField.text ))
+        if( string.IsNullOrEmpty( comment ))
         {
             comment = "NULL";
             Debug.Log("Comment is empty");
         }
         else
         {
-            comment = CommentInputField.text;
             foreach (char c in charsToRemoveFromComment)
             {
                 if (comment.Contains(c))
@@ -225,10 +268,6 @@ public class ConnectToArduino : MonoBehaviour
         if( string.IsNullOrEmpty( PIDInputField.text ))
         {
             pid = "NULL";
-        }
-        else
-        {
-            pid = PIDInputField.text;
         }
         connectingToArduino = true;
         bool connected = OpenConnection();
