@@ -89,11 +89,12 @@ public class ConnectToArduino : MonoBehaviour
         }
         //Setting dontdestroyonload to our soundmanager so it will keep being there when reloading the scene.
         DontDestroyOnLoad(gameObject);
+        SceneManager.sceneLoaded += this.OnLoadCallback;
     }
 
-    void OnLevelWasLoaded(int level) {
+    void OnLoadCallback(Scene scene, LoadSceneMode sceneMode) {
         // only find connect button when we are in connecting scene
-        if (level == 0) {
+        if (scene.name == "ConnectToArduino") {
             GameObject.Find("ConnectButton").GetComponent<Button>().onClick.AddListener(ConnectPressed);
 
             emailInputField = GameObject.Find("emailInputField").GetComponent<InputField>();
@@ -103,12 +104,13 @@ public class ConnectToArduino : MonoBehaviour
             foreach(Transform t in trs){
                 if(t.name == "arduinoInputField"){
                     serialPortInputField = t.gameObject.GetComponent<InputField>();
-                    break;
+                }
+                if(t.name == "Dropdown"){
+                    arduinoDropdown = t.gameObject.GetComponent<Dropdown>();
                 }
             }
             baudRateInputField = GameObject.Find("baudInputField").GetComponent<InputField>();
             PIDInputField = GameObject.Find("PIDInputField").GetComponent<InputField>();
-            arduinoDropdown = GameObject.Find("Dropdown").GetComponent<Dropdown>();
             Transform[] ctrs= GameObject.Find("ConnectButtonHolder").GetComponentsInChildren<Transform>(true);
             foreach(Transform t in ctrs){
                 if(t.name == "ConnectingText"){
